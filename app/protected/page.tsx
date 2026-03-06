@@ -2,8 +2,15 @@ import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
 import { InfoIcon } from "lucide-react";
-import { FetchDataSteps } from "@/components/tutorial/fetch-data-steps";
 import { Suspense } from "react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 async function UserDetails() {
   const supabase = await createClient();
@@ -18,26 +25,40 @@ async function UserDetails() {
 
 export default function ProtectedPage() {
   return (
-    <div className="flex-1 w-full flex flex-col gap-12">
-      <div className="w-full">
-        <div className="bg-accent text-sm p-3 px-5 rounded-md text-foreground flex gap-3 items-center">
-          <InfoIcon size="16" strokeWidth={2} />
+    <div className="flex-1 w-full flex flex-col gap-12 max-w-4xl mx-auto mt-12">
+      <Alert className="bg-primary/5 border-primary/20 text-foreground">
+        <InfoIcon className="h-4 w-4 text-primary" />
+        <AlertTitle className="text-primary font-semibold">
+          Authentication Successful
+        </AlertTitle>
+        <AlertDescription>
           This is a protected page that you can only see as an authenticated
-          user
-        </div>
-      </div>
-      <div className="flex flex-col gap-2 items-start">
-        <h2 className="font-bold text-2xl mb-4">Your user details</h2>
-        <pre className="text-xs font-mono p-3 rounded border max-h-32 overflow-auto">
-          <Suspense>
-            <UserDetails />
-          </Suspense>
-        </pre>
-      </div>
-      <div>
-        <h2 className="font-bold text-2xl mb-4">Next steps</h2>
-        <FetchDataSteps />
-      </div>
+          user.
+        </AlertDescription>
+      </Alert>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl">Your user details</CardTitle>
+          <CardDescription>
+            These are your authentication claims retrieved from the active
+            session.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <pre className="text-sm font-mono p-4 rounded-xl bg-card border text-card-foreground max-h-[500px] overflow-auto shadow-inner">
+            <Suspense
+              fallback={
+                <div className="text-muted-foreground animate-pulse">
+                  Loading user details...
+                </div>
+              }
+            >
+              <UserDetails />
+            </Suspense>
+          </pre>
+        </CardContent>
+      </Card>
     </div>
   );
 }
