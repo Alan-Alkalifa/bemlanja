@@ -38,6 +38,18 @@ Bemlanja is a modern multi-vendor e-commerce marketplace built with **Next.js 15
 - Fetches banner data from a Supabase `cms` schema
 - Auto-rotating full-width banner supported by a Skeleton loading fallback via React `Suspense`
 
+### 📦 Product Catalog & Grid
+
+- **Premium Product Cards**: Redesigned with glassmorphic store badges, star ratings, and smooth hover scaling.
+- **Star Ratings & Reviews**: Integrated average ratings and review counts dynamically fetched from Supabase.
+
+### 📄 Product Detail Page
+
+- **Paginated Reviews**: Efficient client-side pagination with "Load More" and skeleton loading states.
+- **Expandable Descriptions**: Automatic 50-word truncation for long descriptions with a "Read More" toggle.
+- **Seller Information**: Compact integrated card with inline "Chat" and "Visit Store" actions.
+- **Product Assets**: Support for multiple product images, variants (price/stock), and multi-tier categories.
+
 ---
 
 ## 🗂️ Project Structure
@@ -87,17 +99,43 @@ bemlanja/
 
 ### `public.organizations`
 
-| Column              | Type               | Notes                                             |
-| ------------------- | ------------------ | ------------------------------------------------- |
-| `orgId`             | uuid               | Primary key                                       |
-| `userId`            | uuid (FK profiles) |                                                   |
-| `orgName`           | text               |                                                   |
-| `slug`              | text               | **UNIQUE** — used as store URL                    |
-| `label`             | text               | Brand tagline                                     |
-| `orgEmail`          | text               | Organization contact email                        |
-| `orgEmailVerified`  | boolean            | Defaults to `false`                               |
-| `verificationToken` | text               | 6-digit OTP for email verification                |
-| `status`            | text               | `'pending'` → `'active'` after org email verified |
+| Column    | Type               | Notes                          |
+| --------- | ------------------ | ------------------------------ |
+| `orgId`   | uuid               | Primary key                    |
+| `userId`  | uuid (FK profiles) |                                |
+| `orgName` | text               |                                |
+| `slug`    | text               | **UNIQUE** — used as store URL |
+| `status`  | text               | `'pending'`, `'active'`        |
+
+### `public.products`
+
+| Column        | Type           | Notes               |
+| ------------- | -------------- | ------------------- |
+| `productId`   | uuid           | Primary key         |
+| `orgId`       | uuid (FK orgs) |                     |
+| `name`        | text           |                     |
+| `description` | text           | Supports long text  |
+| `price`       | numeric        |                     |
+| `image_url`   | text           | Primary thumbnail   |
+| `is_active`   | boolean        | Soft disable toggle |
+
+### `public.product_reviews`
+
+| Column      | Type               | Notes          |
+| ----------- | ------------------ | -------------- |
+| `reviewId`  | uuid               | Primary key    |
+| `productId` | uuid (FK products) |                |
+| `userId`    | uuid (FK profiles) |                |
+| `rating`    | smallint           | 1-5 star scale |
+| `body`      | text               | Review content |
+
+### 📂 Product Assets & Relationships
+
+- `product_images`: Multiple images per product with `sort_order`.
+- `product_variants`: Optional size/color variations with override price and stock.
+- `categories`: Global product categories.
+- `org_categories`: Store-specific categories.
+- `product_categories` / `product_org_categories`: Many-to-many linkages.
 
 ### Postgres RPC Functions (SECURITY DEFINER)
 
