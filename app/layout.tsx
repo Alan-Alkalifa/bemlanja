@@ -3,6 +3,8 @@ import { Poppins } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
+import { Navbar } from "@/components/global/navbar";
+import { Footer } from "@/components/global/footer";
 import "./globals.css";
 
 const defaultUrl = process.env.VERCEL_URL
@@ -40,7 +42,9 @@ export default function RootLayout({
         >
           <TooltipProvider>
             <div className="flex-1 flex flex-col w-full mx-auto">
+              <Navbar />
               {children}
+              <Footer />
             </div>
             <Toaster />
           </TooltipProvider>

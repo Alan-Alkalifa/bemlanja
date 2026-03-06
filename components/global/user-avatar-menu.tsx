@@ -1,6 +1,7 @@
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -54,7 +55,10 @@ export function UserAvatarMenu({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="rounded-full outline-none ring-2 ring-transparent focus-visible:ring-ring transition-all hover:ring-primary/50 cursor-pointer">
+        <Button
+          variant="ghost"
+          className="relative h-10 w-10 rounded-full outline-none ring-2 ring-transparent focus-visible:ring-ring transition-all hover:ring-primary/50 cursor-pointer p-0"
+        >
           <Avatar>
             {avatarUrl && (
               <AvatarImage src={avatarUrl} alt={fullName || email} />
@@ -63,7 +67,7 @@ export function UserAvatarMenu({
               {initials}
             </AvatarFallback>
           </Avatar>
-        </button>
+        </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel className="font-normal">

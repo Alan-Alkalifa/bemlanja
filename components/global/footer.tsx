@@ -1,4 +1,4 @@
-import { ThemeSwitcher } from "@/components/theme-switcher";
+import { ThemeSwitcher } from "@/components/global/theme-switcher";
 import { Separator } from "@/components/ui/separator";
 import { Mail, MapPin, ShoppingBag } from "lucide-react";
 import Link from "next/link";

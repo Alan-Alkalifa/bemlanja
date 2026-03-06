@@ -1,5 +1,5 @@
 import { AuthButton } from "@/components/auth/buttons/auth-button";
-import { ThemeSwitcher } from "@/components/theme-switcher";
+import { ThemeSwitcher } from "@/components/global/theme-switcher";
 import Link from "next/link";
 import { Suspense } from "react";
 
