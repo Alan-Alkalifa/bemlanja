@@ -88,54 +88,94 @@ bemlanja/
 
 ## 🗄️ Database Schema (Supabase)
 
-### `public.profiles`
+### 👤 Profiles (`public.profiles`)
 
-| Column      | Type                 | Notes                  |
-| ----------- | -------------------- | ---------------------- |
-| `userId`    | uuid (FK auth.users) | Primary key            |
-| `email`     | text                 |                        |
-| `full_name` | text                 |                        |
-| `role`      | text                 | `'user'` or `'seller'` |
+| Column       | Type        | Notes                                            |
+| ------------ | ----------- | ------------------------------------------------ |
+| `userId`     | uuid        | PK, FK auth.users                                |
+| `email`      | text        |                                                  |
+| `full_name`  | text        |                                                  |
+| `avatar_url` | text        |                                                  |
+| `phone`      | text        |                                                  |
+| `role`       | text        | `'user'`, `'seller'`, `'admin'`, `'super_admin'` |
+| `created_at` | timestamptz | default: `now()`                                 |
 
-### `public.organizations`
+### 🏢 Organizations (`public.organizations`)
 
-| Column    | Type               | Notes                          |
-| --------- | ------------------ | ------------------------------ |
-| `orgId`   | uuid               | Primary key                    |
-| `userId`  | uuid (FK profiles) |                                |
-| `orgName` | text               |                                |
-| `slug`    | text               | **UNIQUE** — used as store URL |
-| `status`  | text               | `'pending'`, `'active'`        |
+| Column              | Type    | Notes                            |
+| ------------------- | ------- | -------------------------------- |
+| `orgId`             | uuid    | PK, default: `gen_random_uuid()` |
+| `userId`            | uuid    | FK auth.users                    |
+| `orgName`           | text    |                                  |
+| `slug`              | text    | **UNIQUE** — Store URL           |
+| `label`             | text    | Brand tagline                    |
+| `description`       | text    |                                  |
+| `logoUrl`           | text    |                                  |
+| `bannerUrl`         | text    |                                  |
+| `status`            | text    | default: `'pending'`             |
+| `orgEmail`          | text    |                                  |
+| `orgEmailVerified`  | boolean | default: `false`                 |
+| `verificationToken` | text    | 6-digit OTP                      |
 
-### `public.products`
+### 📦 Products (`public.products`)
 
-| Column        | Type           | Notes               |
-| ------------- | -------------- | ------------------- |
-| `productId`   | uuid           | Primary key         |
-| `orgId`       | uuid (FK orgs) |                     |
-| `name`        | text           |                     |
-| `description` | text           | Supports long text  |
-| `price`       | numeric        |                     |
-| `image_url`   | text           | Primary thumbnail   |
-| `is_active`   | boolean        | Soft disable toggle |
+| Column        | Type    | Notes                            |
+| ------------- | ------- | -------------------------------- |
+| `productId`   | uuid    | PK, default: `gen_random_uuid()` |
+| `orgId`       | uuid    | FK organizations                 |
+| `name`        | text    |                                  |
+| `description` | text    | Supports long description        |
+| `price`       | numeric |                                  |
+| `image_url`   | text    | Main thumbnail                   |
+| `stock`       | integer | default: `0`                     |
+| `is_active`   | boolean | default: `true`                  |
 
-### `public.product_reviews`
+### ⭐ Product Reviews (`public.product_reviews`)
 
-| Column      | Type               | Notes          |
-| ----------- | ------------------ | -------------- |
-| `reviewId`  | uuid               | Primary key    |
-| `productId` | uuid (FK products) |                |
-| `userId`    | uuid (FK profiles) |                |
-| `rating`    | smallint           | 1-5 star scale |
-| `body`      | text               | Review content |
+| Column      | Type     | Notes                            |
+| ----------- | -------- | -------------------------------- |
+| `reviewId`  | uuid     | PK, default: `gen_random_uuid()` |
+| `productId` | uuid     | FK products                      |
+| `userId`    | uuid     | FK profiles/auth.users           |
+| `rating`    | smallint | 1-5 star scale                   |
+| `body`      | text     | Review content                   |
 
-### 📂 Product Assets & Relationships
+### �️ Product Images (`public.product_images`)
 
-- `product_images`: Multiple images per product with `sort_order`.
-- `product_variants`: Optional size/color variations with override price and stock.
-- `categories`: Global product categories.
-- `org_categories`: Store-specific categories.
-- `product_categories` / `product_org_categories`: Many-to-many linkages.
+| Column       | Type    | Notes                            |
+| ------------ | ------- | -------------------------------- |
+| `imageId`    | uuid    | PK, default: `gen_random_uuid()` |
+| `productId`  | uuid    | FK products                      |
+| `url`        | text    |                                  |
+| `sort_order` | integer | default: `0`                     |
+
+### 🎭 Product Variants (`public.product_variants`)
+
+| Column      | Type    | Notes                            |
+| ----------- | ------- | -------------------------------- |
+| `variantId` | uuid    | PK, default: `gen_random_uuid()` |
+| `productId` | uuid    | FK products                      |
+| `name`      | text    |                                  |
+| `price`     | numeric |                                  |
+| `stock`     | integer | default: `0`                     |
+
+### 📍 Addresses (`public.user_addresses`)
+
+| Column           | Type    | Notes                            |
+| ---------------- | ------- | -------------------------------- |
+| `addressId`      | uuid    | PK, default: `gen_random_uuid()` |
+| `userId`         | uuid    | FK auth.users                    |
+| `label`          | text    | e.g. 'Home'                      |
+| `street_address` | text    |                                  |
+| `recipient_name` | text    |                                  |
+| `is_default`     | boolean | default: `false`                 |
+
+### 📂 Categories & Relationships
+
+- **`public.categories`**: Global platform categories.
+- **`public.org_categories`**: Store-specific categories.
+- **`public.product_categories`**: Linkage between products and global categories.
+- **`public.product_org_categories`**: Linkage between products and store categories.
 
 ### Postgres RPC Functions (SECURITY DEFINER)
 
