@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Star } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -26,6 +26,7 @@ import {
 import Image from "next/image";
 
 interface Review {
+  reviewId: string;
   rating: number;
   body: string;
   createdAt: string;
@@ -49,43 +50,53 @@ export function ProductReviews({
   const [reviews, setReviews] = useState<Review[]>(initialReviews);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(initialReviews.length < totalCount);
+  const fetchingRef = useRef(false);
   const supabase = createClient();
 
   const loadMore = useCallback(async () => {
-    if (loading || !hasMore) return;
+    if (fetchingRef.current || !hasMore) return;
+    fetchingRef.current = true;
     setLoading(true);
 
     const start = reviews.length;
     const end = start + PAGE_SIZE - 1;
 
-    const { data, error } = await supabase
-      .from("product_reviews")
-      .select(
-        `
-        rating, 
-        body, 
-        createdAt,
-        profiles ( email ),
-        product_review_images ( url )
-      `,
-      )
-      .eq("productId", productId)
-      .order("createdAt", { ascending: false })
-      .range(start, end);
+    try {
+      const { data, error } = await supabase
+        .from("product_reviews")
+        .select(
+          `
+          reviewId,
+          rating, 
+          body, 
+          createdAt,
+          profiles ( email ),
+          product_review_images ( url )
+        `,
+        )
+        .eq("productId", productId)
+        .order("createdAt", { ascending: false })
+        .range(start, end);
 
-    if (!error && data) {
-      const fetchedReviews = data as unknown as Review[];
-      setReviews((prev) => {
-        const next = [...prev, ...fetchedReviews];
-        setHasMore(next.length < totalCount);
-        return next;
-      });
-    } else {
-      setHasMore(false);
+      if (!error && data) {
+        const fetchedReviews = data as unknown as Review[];
+        setReviews((prev) => {
+          const existingIds = new Set(prev.map(r => r.reviewId));
+          const newUniqueReviews = fetchedReviews.filter(r => !existingIds.has(r.reviewId));
+          const next = [...prev, ...newUniqueReviews];
+          setHasMore(next.length < totalCount);
+          return next;
+        });
+      } else {
+        setHasMore(false);
+      }
+    } catch (err) {
+      console.error("Error loading reviews:", err);
+    } finally {
+      fetchingRef.current = false;
+      setLoading(false);
     }
-
-    setLoading(false);
-  }, [productId, reviews.length, totalCount, loading, hasMore, supabase]);
+  }, [productId, reviews.length, totalCount, hasMore, supabase]);
 
   return (
     <div className="mt-10 flex flex-col gap-4">
@@ -123,7 +134,7 @@ export function ProductReviews({
 
             return (
               <Card
-                key={`${i}-${r.createdAt}`}
+                key={r.reviewId}
                 className="py-0 shadow-none border-none bg-muted/30"
               >
                 <CardContent className="flex flex-col gap-3 p-4">

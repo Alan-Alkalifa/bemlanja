@@ -1,3 +1,4 @@
+import { LoadMoreProducts } from "@/components/global/products/load-more-products";
 import {
   HeroCarousel,
   HeroCarouselSkeleton,
@@ -16,9 +17,14 @@ export default function Home() {
         </Suspense>
 
         {/* Product Grid */}
-        <Suspense fallback={<ProductGridSkeleton count={12} />}>
-          <ProductGrid title="Latest Products" limit={12} />
-        </Suspense>
+        <div className="flex flex-col gap-6 laptop:gap-8">
+          <Suspense fallback={<ProductGridSkeleton count={12} />}>
+            <ProductGrid title="Latest Products" limit={12} />
+          </Suspense>
+
+          {/* Subsequent loads */}
+          <LoadMoreProducts initialOffset={12} pageSize={12} />
+        </div>
       </div>
     </main>
   );

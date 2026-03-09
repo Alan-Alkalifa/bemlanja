@@ -41,6 +41,7 @@ export default async function ProductDetailPage({ params }: Props) {
         city_name, province_name, status
       ),
       product_reviews ( 
+        reviewId,
         rating, 
         body, 
         createdAt,
