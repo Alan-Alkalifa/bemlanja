@@ -24,6 +24,9 @@ export const metadata: Metadata = {
   keywords: ["bemlanja", "belanja online", "toko lokal", "e-commerce indonesia", "produk lokal"],
   authors: [{ name: "Bemlanja" }],
   creator: "Bemlanja",
+  verification: {
+    google: "qo3SG0B2NPeSljDmb9oZZ6Z-Uv94yQmd3ttjfh-NZlA",
+  },
   robots: {
     index: true,
     follow: true,
