@@ -7,14 +7,43 @@ import { CartProvider } from "@/components/providers/cart-provider";
 import QueryProvider from "@/components/query-provider";
 import "./globals.css";
 
-const defaultUrl = process.env.VERCEL_URL
-  ? `https://${process.env.VERCEL_URL}`
-  : "http://localhost:3000";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
+  ? `https://${process.env.NEXT_PUBLIC_SITE_URL}`
+  : process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : "http://localhost:3000";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(defaultUrl),
-  title: "Next.js and Supabase Starter Kit",
-  description: "The fastest way to build apps with Next.js and Supabase",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "Bemlanja — Belanja Mudah, Terpercaya",
+    template: "%s | Bemlanja",
+  },
+  description:
+    "Bemlanja adalah platform e-commerce terpercaya untuk menemukan produk dari berbagai toko lokal pilihan di Indonesia.",
+  keywords: ["bemlanja", "belanja online", "toko lokal", "e-commerce indonesia", "produk lokal"],
+  authors: [{ name: "Bemlanja" }],
+  creator: "Bemlanja",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
+  },
+  openGraph: {
+    type: "website",
+    locale: "id_ID",
+    url: siteUrl,
+    siteName: "Bemlanja",
+    title: "Bemlanja — Belanja Mudah, Terpercaya",
+    description:
+      "Platform e-commerce terpercaya untuk menemukan produk dari berbagai toko lokal pilihan di Indonesia.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Bemlanja — Belanja Mudah, Terpercaya",
+    description:
+      "Platform e-commerce terpercaya untuk menemukan produk dari berbagai toko lokal pilihan di Indonesia.",
+  },
 };
 
 const poppins = Poppins({

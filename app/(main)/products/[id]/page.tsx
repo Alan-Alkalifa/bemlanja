@@ -21,10 +21,61 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ProductReviews } from "@/components/global/products/product-reviews";
 import { ProductDescription } from "@/components/global/products/product-description";
+import type { Metadata } from "next";
 
 interface Props {
   params: Promise<{ id: string }>;
 }
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  const supabase = await createClient();
+
+  const { data: product } = await supabase
+    .from("products")
+    .select("name, description, price, image_url, organizations ( orgName )")
+    .eq("productId", id)
+    .single();
+
+  if (!product) return { title: "Product Not Found" };
+
+  const org = Array.isArray(product.organizations)
+    ? product.organizations[0]
+    : product.organizations;
+  const title = `${product.name} — ${org?.orgName ?? "Bemlanja"}`;
+  const description = product.description
+    ? product.description.slice(0, 160)
+    : `Beli ${product.name} di ${org?.orgName ?? "Bemlanja"} dengan harga terbaik.`;
+  const price = new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    maximumFractionDigits: 0,
+  }).format(Number(product.price));
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      images: product.image_url
+        ? [{ url: product.image_url, alt: product.name, width: 800, height: 800 }]
+        : [],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: product.image_url ? [product.image_url] : [],
+    },
+    other: {
+      "product:price:amount": String(Number(product.price)),
+      "product:price:currency": "IDR",
+    },
+  };
+}
+
 
 export default async function ProductDetailPage({ params }: Props) {
   const { id } = await params;

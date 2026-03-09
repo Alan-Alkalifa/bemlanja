@@ -3,10 +3,51 @@ import { createClient } from "@/lib/supabase/server";
 import { StoreHeader } from "@/components/global/stores/store-header";
 import { StoreSidebarFilter } from "@/components/global/stores/store-sidebar-filter";
 import { StoreProductGrid } from "@/components/global/stores/store-product-grid";
+import type { Metadata } from "next";
 
 interface Props {
   params: Promise<{ slug: string }>;
 }
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const supabase = await createClient();
+
+  const { data: store } = await supabase
+    .from("organizations")
+    .select("orgName, description, logoUrl, city_name, province_name")
+    .eq("slug", slug)
+    .single();
+
+  if (!store) return { title: "Store Not Found" };
+
+  const title = `${store.orgName} — Toko di Bemlanja`;
+  const description = store.description
+    ? store.description.slice(0, 160)
+    : `Kunjungi toko ${store.orgName}${
+        store.city_name ? ` di ${store.city_name}` : ""
+      } dan temukan produk pilihan terbaik di Bemlanja.`;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      images: store.logoUrl
+        ? [{ url: store.logoUrl, alt: store.orgName, width: 400, height: 400 }]
+        : [],
+    },
+    twitter: {
+      card: "summary",
+      title,
+      description,
+      images: store.logoUrl ? [store.logoUrl] : [],
+    },
+  };
+}
+
 
 export default async function StoreProfilePage({ params }: Props) {
   const { slug } = await params;
