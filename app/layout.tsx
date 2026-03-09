@@ -3,8 +3,8 @@ import { Poppins } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
-import { Navbar } from "@/components/global/navbar";
-import { Footer } from "@/components/global/footer";
+import { CartProvider } from "@/components/providers/cart-provider";
+import QueryProvider from "@/components/query-provider";
 import "./globals.css";
 
 const defaultUrl = process.env.VERCEL_URL
@@ -40,14 +40,14 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <TooltipProvider>
-            <div className="flex-1 flex flex-col w-full mx-auto">
-              <Navbar />
-              {children}
-              <Footer />
-            </div>
-            <Toaster />
-          </TooltipProvider>
+          <QueryProvider>
+            <TooltipProvider>
+              <CartProvider>
+                {children}
+                <Toaster />
+              </CartProvider>
+            </TooltipProvider>
+          </QueryProvider>
         </ThemeProvider>
       </body>
     </html>

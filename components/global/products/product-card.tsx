@@ -97,7 +97,7 @@ export function ProductCard({
             <div className="flex items-center gap-0.5">
               <Star
                 className={cn(
-                  "size-3 fill-yellow-400 text-yellow-400",
+                  "size-3 fill-chart-3 text-chart-3",
                   avgRating === 0 && "fill-muted text-muted",
                 )}
               />
@@ -107,7 +107,7 @@ export function ProductCard({
             </div>
             <span className="text-[11px] text-muted-foreground/60">|</span>
             <span className="text-[11px] text-muted-foreground font-medium">
-              {reviewCount > 0 ? `${reviewCount}+ ulasan` : "Baru"}
+              {reviewCount > 0 ? `${reviewCount}+ reviews` : "New"}
             </span>
           </div>
         </div>

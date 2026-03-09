@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import {
   ProductDetailClient,
   type ProductVariant,
-} from "@/components/global/product-detail-client";
+} from "@/components/global/products/product-detail-client";
 import {
   Carousel,
   CarouselContent,
@@ -19,8 +19,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { ProductReviews } from "@/components/global/product-reviews";
-import { ProductDescription } from "@/components/global/product-description";
+import { ProductReviews } from "@/components/global/products/product-reviews";
+import { ProductDescription } from "@/components/global/products/product-description";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -186,7 +186,7 @@ export default async function ProductDetailPage({ params }: Props) {
               <div className="flex flex-wrap items-center gap-3">
                 {/* Rating */}
                 <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                  <Star className="size-4 fill-yellow-400 text-yellow-400" />
+                  <Star className="size-4 fill-chart-3 text-chart-3" />
                   <span className="font-semibold text-foreground">
                     {avgRating.toFixed(1)}
                   </span>
@@ -212,6 +212,9 @@ export default async function ProductDetailPage({ params }: Props) {
 
             {/* Interactive section: price, variants, qty, button */}
             <ProductDetailClient
+              productId={product.productId}
+              name={product.name}
+              imageUrl={product.image_url ?? (images[0]?.url || "")}
               variants={variants}
               basePrice={Number(product.price)}
               baseStock={product.stock}
@@ -221,7 +224,7 @@ export default async function ProductDetailPage({ params }: Props) {
             <div className="grid grid-cols-2 gap-3">
               <Card className="py-0 shadow-none">
                 <CardContent className="flex items-start gap-3 p-4">
-                  <ShieldCheck className="size-5 text-emerald-500 shrink-0 mt-0.5" />
+                  <ShieldCheck className="size-5 text-chart-2 shrink-0 mt-0.5" />
                   <div className="flex flex-col gap-0.5">
                     <span className="text-sm font-semibold text-foreground">
                       Safe Guarantee
@@ -234,7 +237,7 @@ export default async function ProductDetailPage({ params }: Props) {
               </Card>
               <Card className="py-0 shadow-none">
                 <CardContent className="flex items-start gap-3 p-4">
-                  <Store className="size-5 text-blue-500 shrink-0 mt-0.5" />
+                  <Store className="size-5 text-primary shrink-0 mt-0.5" />
                   <div className="flex flex-col gap-0.5">
                     <span className="text-sm font-semibold text-foreground">
                       Verified Merchant

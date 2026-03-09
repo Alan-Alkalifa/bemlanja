@@ -1,7 +1,6 @@
-import { ProductCardSkeleton } from "@/components/global/product-card-skeleton";
+import { ProductCardSkeleton } from "@/components/global/products/product-card-skeleton";
 
 interface ProductGridSkeletonProps {
-  /** How many skeleton cards to show. Defaults to 6. */
   count?: number;
 }
 

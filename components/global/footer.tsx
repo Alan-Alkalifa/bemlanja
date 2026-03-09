@@ -4,15 +4,15 @@ import { Mail, MapPin, ShoppingBag } from "lucide-react";
 import Link from "next/link";
 
 const layananLinks = [
-  { label: "Bantuan", href: "/" },
-  { label: "Daftar sebagai Mitra", href: "/" },
-  { label: "Pengembalian Dana", href: "/" },
+  { label: "Help", href: "/" },
+  { label: "Register as Partner", href: "/" },
+  { label: "Refunds", href: "/" },
 ];
 
 const jelajahiLinks = [
-  { label: "Semua Produk", href: "/" },
-  { label: "Kategori Populer", href: "/" },
-  { label: "Daftar Mitra Toko", href: "/" },
+  { label: "All Products", href: "/" },
+  { label: "Popular Categories", href: "/" },
+  { label: "Store Partners List", href: "/" },
 ];
 
 export function Footer() {
@@ -29,14 +29,14 @@ export function Footer() {
               </span>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Platform jual beli resmi Universitas Pembangunan Jaya. Mendukung
-              wirausaha dari civitas akademika UPJ.
+              Official marketplace of Universitas Pembangunan Jaya. Supporting
+              entrepreneurship for the UPJ academic community.
             </p>
           </div>
 
           {/* Layanan */}
           <div className="flex flex-col gap-3">
-            <h4 className="text-sm font-semibold text-foreground">Layanan</h4>
+            <h4 className="text-sm font-semibold text-foreground">Services</h4>
             <ul className="flex flex-col gap-2">
               {layananLinks.map((link) => (
                 <li key={link.label}>
@@ -53,7 +53,7 @@ export function Footer() {
 
           {/* Jelajahi */}
           <div className="flex flex-col gap-3">
-            <h4 className="text-sm font-semibold text-foreground">Jelajahi</h4>
+            <h4 className="text-sm font-semibold text-foreground">Explore</h4>
             <ul className="flex flex-col gap-2">
               {jelajahiLinks.map((link) => (
                 <li key={link.label}>
@@ -71,7 +71,7 @@ export function Footer() {
           {/* Hubungi Kami */}
           <div className="flex flex-col gap-3">
             <h4 className="text-sm font-semibold text-foreground">
-              Hubungi Kami
+              Contact Us
             </h4>
             <ul className="flex flex-col gap-3">
               <li className="flex items-start gap-2">

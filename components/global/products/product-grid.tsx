@@ -1,19 +1,21 @@
 import { createClient } from "@/lib/supabase/server";
-import { ProductCard } from "@/components/global/product-card";
+import { ProductCard } from "@/components/global/products/product-card";
 
 interface ProductGridProps {
   title?: string;
   /** Max number of products to show. Defaults to 12. */
   limit?: number;
+  orgId?: string;
 }
 
 export async function ProductGrid({
-  title = "Produk Terbaru",
+  title = "Latest Products",
   limit = 12,
+  orgId,
 }: ProductGridProps) {
   const supabase = await createClient();
 
-  const { data: products, error } = await supabase
+  let query = supabase
     .from("products")
     .select(
       `productId, name, price, image_url,
@@ -24,6 +26,12 @@ export async function ProductGrid({
     .is("deletedAt", null)
     .order("createdAt", { ascending: false })
     .limit(limit);
+
+  if (orgId) {
+    query = query.eq("orgId", orgId);
+  }
+
+  const { data: products, error } = await query;
 
   if (error || !products || products.length === 0) return null;
 
@@ -58,7 +66,7 @@ export async function ProductGrid({
               avgRating={avgRating}
               reviewCount={totalReviews}
               org={{
-                orgName: org?.orgName ?? "Toko",
+                orgName: org?.orgName ?? "Store",
                 slug: org?.slug ?? "",
                 initials: (org?.orgName ?? "T").slice(0, 2).toUpperCase(),
                 logoUrl: org?.logoUrl ?? null,

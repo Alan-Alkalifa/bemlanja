@@ -44,6 +44,7 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/auth/verify-org");
   const isHomePage = request.nextUrl.pathname === "/";
   const isProductRoute = request.nextUrl.pathname.startsWith("/products");
+  const isStoreRoute = request.nextUrl.pathname.startsWith("/stores");
 
   // If user is logged in and on an auth page (except verify-org which requires being logged in),
   // redirect them to the app
@@ -54,7 +55,13 @@ export async function updateSession(request: NextRequest) {
   }
 
   // If user is NOT logged in and trying to access a protected route
-  if (!user && !isAuthRoute && !isHomePage && !isProductRoute) {
+  if (
+    !user &&
+    !isAuthRoute &&
+    !isHomePage &&
+    !isProductRoute &&
+    !isStoreRoute
+  ) {
     const url = request.nextUrl.clone();
     url.pathname = "/auth/login";
     return NextResponse.redirect(url);

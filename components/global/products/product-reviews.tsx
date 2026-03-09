@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Star } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
 import { ReviewSkeleton } from "./product-review-skeleton";
 
 interface Review {
@@ -128,7 +127,7 @@ export function ProductReviews({
                               key={s}
                               className={`size-3 ${
                                 s < r.rating
-                                  ? "fill-yellow-400 text-yellow-400"
+                                  ? "fill-chart-3 text-chart-3"
                                   : "text-muted"
                               }`}
                             />

@@ -1,4 +1,5 @@
 import { AuthButton } from "@/components/auth/buttons/auth-button";
+import { CartSheet } from "@/components/global/cart/cart-sheet";
 import Link from "next/link";
 import { Suspense } from "react";
 
@@ -15,6 +16,7 @@ export function Navbar() {
           </Link>
         </div>
         <div className="flex items-center gap-2 laptop:gap-4">
+          <CartSheet />
           <Suspense
             fallback={
               <div className="h-8 w-20 animate-pulse bg-muted rounded-md" />

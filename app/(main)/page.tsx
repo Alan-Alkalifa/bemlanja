@@ -2,8 +2,8 @@ import {
   HeroCarousel,
   HeroCarouselSkeleton,
 } from "@/components/global/hero-carousel";
-import { ProductGrid } from "@/components/global/product-grid";
-import { ProductGridSkeleton } from "@/components/global/product-grid-skeleton";
+import { ProductGrid } from "@/components/global/products/product-grid";
+import { ProductGridSkeleton } from "@/components/global/products/product-grid-skeleton";
 import { Suspense } from "react";
 
 export default function Home() {
@@ -17,7 +17,7 @@ export default function Home() {
 
         {/* Product Grid */}
         <Suspense fallback={<ProductGridSkeleton count={6} />}>
-          <ProductGrid title="Produk Terbaru" limit={12} />
+          <ProductGrid title="Latest Products" limit={12} />
         </Suspense>
       </div>
     </main>

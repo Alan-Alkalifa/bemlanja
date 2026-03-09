@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Minus, Plus, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useCart } from "@/components/providers/cart-provider";
 
 export interface ProductVariant {
   variantId: string;
@@ -13,6 +14,9 @@ export interface ProductVariant {
 }
 
 interface ProductDetailClientProps {
+  productId: string;
+  name: string;
+  imageUrl: string;
   variants: ProductVariant[];
   basePrice: number;
   baseStock: number;
@@ -23,6 +27,9 @@ function formatRupiah(amount: number): string {
 }
 
 export function ProductDetailClient({
+  productId,
+  name,
+  imageUrl,
   variants,
   basePrice,
   baseStock,
@@ -32,6 +39,7 @@ export function ProductDetailClient({
     hasVariants ? variants[0] : null,
   );
   const [qty, setQty] = useState(1);
+  const { addItem } = useCart();
 
   const currentPrice = selectedVariant?.price ?? basePrice;
   const currentStock = selectedVariant?.stock ?? baseStock;
@@ -45,6 +53,27 @@ export function ProductDetailClient({
   function handleVariantSelect(v: ProductVariant) {
     setSelectedVariant(v);
     setQty(1);
+  }
+
+  function handleAddToCart() {
+    addItem({
+      productId,
+      variantId: selectedVariant?.variantId,
+      quantity: qty,
+      product: {
+        name,
+        price: basePrice,
+        image_url: imageUrl,
+        stock: baseStock,
+      },
+      variant: selectedVariant
+        ? {
+            name: selectedVariant.name,
+            price: selectedVariant.price,
+            stock: selectedVariant.stock,
+          }
+        : undefined,
+    });
   }
 
   return (
@@ -139,6 +168,7 @@ export function ProductDetailClient({
         size="lg"
         className="w-full gap-2 text-base font-semibold"
         disabled={currentStock === 0}
+        onClick={handleAddToCart}
       >
         <ShoppingCart className="size-5" />
         {currentStock === 0 ? "Out of Stock" : "Add to Cart"}
