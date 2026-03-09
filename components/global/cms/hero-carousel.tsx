@@ -9,12 +9,13 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel";
 import { Button } from "@/components/ui/button";
-import { HeroCarouselSkeleton } from "@/components/global/hero-carousel-skeleton";
+import { HeroCarouselSkeleton } from "@/components/global/cms/hero-carousel-skeleton";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import Image from "next/image";
 import * as React from "react";
+export { HeroCarouselSkeleton } from "@/components/global/cms/hero-carousel-skeleton";
 
 interface Banner {
   id: number;
@@ -25,8 +26,6 @@ interface Banner {
   image_url: string;
   sort_order: number;
 }
-
-export { HeroCarouselSkeleton } from "@/components/global/hero-carousel-skeleton";
 
 export function HeroCarousel() {
   const [api, setApi] = React.useState<CarouselApi>();

@@ -1,7 +1,7 @@
 import {
   HeroCarousel,
   HeroCarouselSkeleton,
-} from "@/components/global/hero-carousel";
+} from "@/components/global/cms/hero-carousel";
 import { ProductGrid } from "@/components/global/products/product-grid";
 import { ProductGridSkeleton } from "@/components/global/products/product-grid-skeleton";
 import { Suspense } from "react";

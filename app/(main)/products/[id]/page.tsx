@@ -44,7 +44,8 @@ export default async function ProductDetailPage({ params }: Props) {
         rating, 
         body, 
         createdAt,
-        profiles ( email )
+        profiles ( email ),
+        product_review_images ( url )
       ),
       product_images ( imageId, url, sort_order ),
       product_variants ( variantId, name, price, stock, weight_grams ),
@@ -286,7 +287,7 @@ export default async function ProductDetailPage({ params }: Props) {
                         </span>
                         {org?.status === "active" && (
                           <Badge
-                            variant="secondary"
+                            variant="default"
                             className="text-[10px] shrink-0"
                           >
                             Official Store
@@ -342,7 +343,7 @@ export default async function ProductDetailPage({ params }: Props) {
                   Category:
                 </span>
                 {globalCategories.map((c) => (
-                  <Badge key={c.categoryId} variant="secondary">
+                  <Badge key={c.categoryId} variant="default">
                     {c.name}
                   </Badge>
                 ))}

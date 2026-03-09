@@ -9,12 +9,28 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ReviewSkeleton } from "./product-review-skeleton";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import Image from "next/image";
 
 interface Review {
   rating: number;
   body: string;
   createdAt: string;
   profiles: { email: string }[];
+  product_review_images: { url: string }[];
 }
 
 interface ProductReviewsProps {
@@ -49,7 +65,8 @@ export function ProductReviews({
         rating, 
         body, 
         createdAt,
-        profiles ( email )
+        profiles ( email ),
+        product_review_images ( url )
       `,
       )
       .eq("productId", productId)
@@ -75,7 +92,7 @@ export function ProductReviews({
       <Separator />
       <div className="flex items-center gap-2">
         <h2 className="text-lg font-bold text-foreground">Buyer Reviews</h2>
-        <Badge variant="secondary">{totalCount}</Badge>
+        <Badge variant="default">{totalCount}</Badge>
       </div>
 
       {totalCount === 0 ? (
@@ -142,6 +159,112 @@ export function ProductReviews({
                   <p className="text-sm text-foreground/90 leading-relaxed pl-11">
                     {r.body}
                   </p>
+                  {r.product_review_images &&
+                    r.product_review_images.length > 0 && (
+                      <div className="flex gap-2 pb-2 pl-11 mt-1">
+                        {r.product_review_images.slice(0, 2).map((img, idx) => {
+                          const isLastVisible =
+                            idx === 1 && r.product_review_images.length > 2;
+                          const remainingCount =
+                            r.product_review_images.length - 2;
+
+                          return (
+                            <Dialog key={idx}>
+                              <DialogTrigger asChild>
+                                <button className="relative size-20 shrink-0 rounded-lg overflow-hidden bg-muted border border-border/10 hover:opacity-90 transition-opacity">
+                                  <Image
+                                    src={img.url}
+                                    alt={`Review image ${idx + 1}`}
+                                    fill
+                                    className="object-cover"
+                                    unoptimized
+                                  />
+                                  {isLastVisible && (
+                                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                                      <span className="text-white font-bold text-lg">
+                                        +{remainingCount}
+                                      </span>
+                                    </div>
+                                  )}
+                                </button>
+                              </DialogTrigger>
+                              <DialogContent className="max-w-[95vw] tablet:max-w-2xl p-0 overflow-hidden border-none bg-transparent shadow-none">
+                                <DialogHeader className="sr-only">
+                                  <DialogTitle>Review Images</DialogTitle>
+                                </DialogHeader>
+                                <Card className="border-none shadow-2xl bg-background overflow-hidden rounded-2xl">
+                                  <CardContent className="p-0 relative flex flex-col">
+                                    <Carousel
+                                      opts={{
+                                        startIndex: idx,
+                                        loop:
+                                          r.product_review_images.length > 1,
+                                      }}
+                                      className="w-full"
+                                    >
+                                      <CarouselContent>
+                                        {r.product_review_images.map(
+                                          (fullImg, fIdx) => (
+                                            <CarouselItem
+                                              key={fIdx}
+                                              className="flex items-center justify-center p-0"
+                                            >
+                                              <div className="relative w-full aspect-square mobile:aspect-4/5 bg-muted/20">
+                                                <Image
+                                                  src={fullImg.url}
+                                                  alt={`Review image ${fIdx + 1}`}
+                                                  fill
+                                                  className="object-contain"
+                                                  unoptimized
+                                                />
+                                              </div>
+                                            </CarouselItem>
+                                          ),
+                                        )}
+                                      </CarouselContent>
+                                      {r.product_review_images.length > 1 && (
+                                        <>
+                                          <CarouselPrevious className="left-4 mobile:flex" />
+                                          <CarouselNext className="right-4 mobile:flex" />
+                                        </>
+                                      )}
+                                    </Carousel>
+
+                                    {/* Info Overlay at the bottom of the card */}
+                                    <div className="absolute bottom-0 left-0 right-0 p-6 bg-linear-to-t from-black/80 via-black/40 to-transparent text-white pointer-events-none">
+                                      <div className="flex items-end justify-between gap-4">
+                                        <div className="flex flex-col gap-1">
+                                          <span className="text-base font-bold tracking-tight">
+                                            {maskedName}
+                                          </span>
+                                          <span className="text-xs font-medium opacity-70">
+                                            {reviewDate}
+                                          </span>
+                                        </div>
+                                        <div className="flex items-center gap-1 mb-1">
+                                          {Array.from({ length: 5 }).map(
+                                            (_, s) => (
+                                              <Star
+                                                key={s}
+                                                className={`size-3.5 ${
+                                                  s < r.rating
+                                                    ? "fill-chart-3 text-chart-3"
+                                                    : "text-white/20"
+                                                }`}
+                                              />
+                                            ),
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </CardContent>
+                                </Card>
+                              </DialogContent>
+                            </Dialog>
+                          );
+                        })}
+                      </div>
+                    )}
                 </CardContent>
               </Card>
             );

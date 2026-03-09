@@ -61,6 +61,11 @@ Bemlanja is a modern multi-vendor e-commerce marketplace built with **Next.js 15
 ### ⭐ Product Reviews & Feedback
 
 - **Paginated Reviews**: Efficient client-side pagination with "Load More" and skeleton loading states.
+- **Review Image Gallery**:
+  - Displays up to 2 high-quality images per review card.
+  - Interactive `+X` indicators for reviews with multiple images.
+  - Premium full-screen `Dialog` viewer with a `Carousel` for high-resolution image browsing.
+  - Clean info overlays in the gallery modal showing reviewer details and ratings.
 - **Dynamic Ratings**: Star ratings and review counts dynamically aggregated from Supabase.
 
 ### 🛒 Shopping Cart & Single-Store Checkout
@@ -158,6 +163,14 @@ bemlanja/
 | `userId`    | uuid     | FK profiles/auth.users           |
 | `rating`    | smallint | 1-5 star scale                   |
 | `body`      | text     | Review content                   |
+
+### 🖼️ Product Review Images (`public.product_review_images`)
+
+| Column     | Type | Notes                            |
+| ---------- | ---- | -------------------------------- |
+| `id`       | uuid | PK, default: `gen_random_uuid()` |
+| `reviewId` | uuid | FK product_reviews               |
+| `url`      | text | Image resolution URL             |
 
 ### �️ Product Images (`public.product_images`)
 

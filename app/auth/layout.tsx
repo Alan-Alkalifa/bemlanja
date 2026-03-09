@@ -1,6 +1,6 @@
 import React, { Suspense } from "react";
-import { AuthBanner } from "@/components/auth/auth-banner";
-import { AuthBannerSkeleton } from "@/components/auth/auth-banner-skeleton";
+import { AuthBanner } from "@/components/global/cms/auth-banner";
+import { AuthBannerSkeleton } from "@/components/global/cms/auth-banner-skeleton";
 
 export default function AuthLayout({
   children,
