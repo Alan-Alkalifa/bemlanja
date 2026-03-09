@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useTransition } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { Search, Layers, Info, Filter } from "lucide-react";
+import { Search, Info, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -18,20 +18,16 @@ import {
 import { useDebounce } from "@/hooks/use-debounce";
 
 interface Category {
-  orgCategoryId: string;
+  categoryId: string;
   name: string;
   slug: string;
 }
 
-interface StoreSidebarFilterProps {
+interface SearchSidebarFilterProps {
   categories: Category[];
-  storeName: string;
 }
 
-export function StoreSidebarFilter({
-  categories,
-  storeName,
-}: StoreSidebarFilterProps) {
+export function SearchSidebarFilter({ categories }: SearchSidebarFilterProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -63,22 +59,15 @@ export function StoreSidebarFilter({
   const [minPrice, setMinPrice] = useState(initialMinPrice);
   const [maxPrice, setMaxPrice] = useState(initialMaxPrice);
 
-  // Slider state expects number array
   const [priceRange, setPriceRange] = useState([
     parseInt(initialMinPrice),
     parseInt(initialMaxPrice),
   ]);
 
-  // Update URL function
-  const createQueryString = (name: string, value: string) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (value && value !== "all") {
-      params.set(name, value);
-    } else {
-      params.delete(name);
-    }
-    return params.toString();
-  };
+  // Sync Input when URL params change
+  useEffect(() => {
+    setQuery(searchParams.get("q") || "");
+  }, [searchParams]);
 
   // Handle Search Input Change
   useEffect(() => {
@@ -98,9 +87,13 @@ export function StoreSidebarFilter({
   // Handle Category click
   const handleCategoryChange = (slug: string) => {
     startTransition(() => {
-      router.push(`${pathname}?${createQueryString("category", slug)}`, {
-        scroll: false,
-      });
+      const newParams = new URLSearchParams(searchParams.toString());
+      if (slug && slug !== "all") {
+        newParams.set("category", slug);
+      } else {
+        newParams.delete("category");
+      }
+      router.push(`${pathname}?${newParams.toString()}`, { scroll: false });
     });
   };
 
@@ -124,7 +117,6 @@ export function StoreSidebarFilter({
     });
   };
 
-  // Handle Slider Change
   const handleSliderChange = (value: number[]) => {
     setPriceRange(value);
     setMinPrice(value[0].toString());
@@ -132,15 +124,14 @@ export function StoreSidebarFilter({
   };
 
   const FilterContent = (
-    <div className="flex flex-col gap-6">
-      {/* Search Section */}
+    <div className="flex flex-col gap-6 pb-6">
       <div className="flex flex-col gap-3">
         <h3 className="text-sm font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
-          Search in Store
+          Search
         </h3>
         <div className="relative">
           <Input
-            placeholder={`Search in ${storeName}...`}
+            placeholder="Search products..."
             className="pl-3 pr-10 shadow-sm rounded-lg border-muted"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -153,7 +144,6 @@ export function StoreSidebarFilter({
 
       <Separator />
 
-      {/* Categories Section */}
       <div className="flex flex-col gap-3">
         <h3 className="text-sm font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
           Categories
@@ -161,16 +151,16 @@ export function StoreSidebarFilter({
         <div className="flex flex-col gap-1">
           <Button
             variant={currentCategory === "all" ? "secondary" : "ghost"}
-            className={`justify-start w-full font-medium ${currentCategory === "all" ? "bg-primary" : "text-muted-foreground"}`}
+            className={`justify-start w-full font-medium ${currentCategory === "all" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
             onClick={() => handleCategoryChange("all")}
           >
             All Categories
           </Button>
           {categories.map((cat) => (
             <Button
-              key={cat.orgCategoryId}
+              key={cat.categoryId}
               variant={currentCategory === cat.slug ? "default" : "ghost"}
-              className={`justify-start w-full uppercase text-xs tracking-wider ${currentCategory === cat.slug ? "bg-primary font-bold" : "text-muted-foreground"}`}
+              className={`justify-start w-full uppercase text-xs tracking-wider ${currentCategory === cat.slug ? "bg-primary text-primary-foreground font-bold" : "text-muted-foreground"}`}
               onClick={() => handleCategoryChange(cat.slug)}
             >
               {cat.name}
@@ -181,7 +171,6 @@ export function StoreSidebarFilter({
 
       <Separator />
 
-      {/* Price Range Section */}
       <div className="flex flex-col gap-4">
         <h3 className="text-sm font-bold text-foreground">Price Range</h3>
 
@@ -240,28 +229,25 @@ export function StoreSidebarFilter({
         </Button>
       </div>
 
-      {/* Helper Note */}
-      <div className="bg-primary/40 rounded-xl p-4 flex flex-col gap-2 mt-4 text-xs text-muted-foreground">
-        <Info className="h-4 w-4 text-foreground/70" />
-        <p>Use price and category filters to find the products you need.</p>
-      </div>
+      {/* <div className="bg-primary/10 rounded-xl p-4 flex flex-col gap-2 mt-4 text-xs text-muted-foreground">
+        <Info className="h-4 w-4 text-primary" />
+        <p>Use price and category filters to find the products across all stores.</p>
+      </div> */}
     </div>
   );
 
   return (
     <>
-      {/* Desktop View */}
-      <div className="hidden lg:flex w-full flex-col">
+      <div className="hidden lg:flex w-full shrink-0 flex-col">
         {FilterContent}
       </div>
 
-      {/* Tablet & Mobile View */}
-      <div className="lg:hidden w-full">
+      <div className="lg:hidden w-full pb-2">
         <Drawer open={isOpen} onOpenChange={setIsOpen}>
           <DrawerTrigger asChild>
             <Button
               variant="outline"
-              className="w-full gap-2 justify-center shadow-sm h-11"
+              className="w-full gap-2 justify-center shadow-sm h-11 border-muted"
             >
               <Filter className="w-4 h-4" />
               Filter Products
@@ -269,9 +255,9 @@ export function StoreSidebarFilter({
           </DrawerTrigger>
           <DrawerContent>
             <DrawerHeader className="text-left px-4">
-              <DrawerTitle>Filter Products</DrawerTitle>
+              <DrawerTitle>Filter Search</DrawerTitle>
               <DrawerDescription>
-                Adjust product search in this store.
+                Adjust product search filters globally.
               </DrawerDescription>
             </DrawerHeader>
             <div className="px-4 pb-8 overflow-y-auto max-h-[70vh]">

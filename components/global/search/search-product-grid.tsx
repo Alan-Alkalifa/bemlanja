@@ -14,19 +14,12 @@ import { Empty } from "@/components/ui/empty";
 import { Search } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
-import { StoreProductGridSkeleton } from "./store-product-grid-skeleton";
+import { StoreProductGridSkeleton } from "@/components/global/stores/store-product-grid-skeleton";
 import { ProductPagination } from "@/components/global/products/product-pagination";
 
 const PAGE_SIZE = 40;
 
-interface StoreProductGridProps {
-  orgId: string;
-  initialProducts?: any[];
-  initialTotal?: number;
-}
-
-// Ensure you have a standard fetch function for React Query to read the params and call Supabase
-export function StoreProductGrid({ orgId }: StoreProductGridProps) {
+export function SearchProductGrid() {
   const supabase = createClient();
   const router = useRouter();
   const pathname = usePathname();
@@ -38,48 +31,52 @@ export function StoreProductGrid({ orgId }: StoreProductGridProps) {
   const minPrice = searchParams.get("min_price") || "";
   const maxPrice = searchParams.get("max_price") || "";
   const sort = searchParams.get("sort") || "latest";
+  const orgId = searchParams.get("orgId") || "";
   const page = parseInt(searchParams.get("page") || "1");
 
   const offset = (page - 1) * PAGE_SIZE;
 
   // Use React Query for client-side fetching to easily handle all combination of filters
   const { data, isLoading } = useQuery({
-    queryKey: ["store-products", orgId, q, category, minPrice, maxPrice, sort, page],
+    queryKey: ["global-products", q, category, minPrice, maxPrice, sort, orgId, page],
     queryFn: async () => {
       // Dynamic select to use !inner join only when filtering by category
       const categoryFilterActive = category && category !== "all";
       const selectStr = `
         productId, name, price, image_url, createdAt,
-        organizations ( orgId, orgName, slug, logoUrl ),
+        organizations!inner ( orgId, orgName, slug, logoUrl ),
         product_reviews ( rating ),
-        product_org_categories${categoryFilterActive ? "!inner" : ""} ( orgCategoryId )
+        product_categories${categoryFilterActive ? "!inner" : ""} ( categoryId )
       `;
 
       let query = supabase
         .from("products")
         .select(selectStr, { count: "exact" })
-        .eq("orgId", orgId)
         .eq("is_active", true)
         .is("deletedAt", null);
+
+      // Apply Filter by Store/Org
+      if (orgId) {
+        query = query.eq("orgId", orgId);
+      }
 
       // Apply Search
       if (q) {
         query = query.ilike("name", `%${q}%`);
       }
 
-      // Apply Category (using inner join mapped above)
+      // Apply Category (using global categories table)
       if (categoryFilterActive) {
-        // We need the orgCategoryId for this slug.
-        // In a real app we'd fetch the ID or use a view, but here we can do a subquery or secondary fetch
         const { data: catData } = await supabase
-          .from("org_categories")
-          .select("orgCategoryId")
+          .from("categories")
+          .select("categoryId")
           .eq("slug", category)
           .single();
+          
         if (catData) {
           query = query.eq(
-            "product_org_categories.orgCategoryId",
-            catData.orgCategoryId,
+            "product_categories.categoryId",
+            catData.categoryId,
           );
         }
       }
@@ -139,11 +136,13 @@ export function StoreProductGrid({ orgId }: StoreProductGridProps) {
   const total = data?.count || 0;
 
   return (
-    <section className="flex flex-col gap-6 w-full">
+    <section className="flex flex-col gap-6 w-full mt-4 lg:mt-0">
       {/* Top Bar: Title & Sorting */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="font-bold text-xl text-foreground">All Products</h2>
+          <h2 className="font-bold text-xl text-foreground">
+            {q ? `Results for "${q}"` : "All Products"}
+          </h2>
           <p className="text-sm text-muted-foreground mt-1">
             Showing {products.length} of {total} products
           </p>
@@ -182,7 +181,7 @@ export function StoreProductGrid({ orgId }: StoreProductGridProps) {
 
       {/* Grid */}
       {products.length > 0 ? (
-        <div className="grid grid-cols-2 tablet:grid-cols-3 laptop:grid-cols-4 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 tablet:grid-cols-3 laptop:grid-cols-4 xl:grid-cols-5 gap-4">
           {products.map((p: any) => {
             const org = Array.isArray(p.organizations)
               ? p.organizations[0]
@@ -227,7 +226,7 @@ export function StoreProductGrid({ orgId }: StoreProductGridProps) {
                 No products found
               </p>
               <p className="text-sm">
-                Try adjusting your search filters or categories.
+                Try adjusting your search filters.
               </p>
             </div>
           </Empty>

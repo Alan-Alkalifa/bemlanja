@@ -74,7 +74,7 @@ export default async function StoreProfilePage({ params }: Props) {
       {/* 2-Column Layout below Header */}
       <div className="flex flex-col lg:flex-row gap-8 px-4 md:px-0 mt-2">
         {/* Sidebar */}
-        <aside className="w-full lg:w-[260px] shrink-0">
+        <aside className="w-full lg:w-[260px] shrink-0 z-20 sticky top-16 lg:top-24 h-fit py-4 lg:py-0">
           <StoreSidebarFilter
             categories={categories || []}
             storeName={store.orgName}

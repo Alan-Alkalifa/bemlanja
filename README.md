@@ -38,17 +38,30 @@ Bemlanja is a modern multi-vendor e-commerce marketplace built with **Next.js 15
 - Fetches banner data from a Supabase `cms` schema
 - Auto-rotating full-width banner supported by a Skeleton loading fallback via React `Suspense`
 
-### 📦 Product Catalog & Grid
+### 🔍 Global Search & Store Discovery
 
-- **Premium Product Cards**: Redesigned with glassmorphic store badges, star ratings, and smooth hover scaling.
-- **Star Ratings & Reviews**: Integrated average ratings and review counts dynamically fetched from Supabase.
+- **Live Search Dropdown**: Instant results for stores and products as you type, with a premium skeleton loading state.
+- **Dedicated Search Page**: Fully-featured `/search` route that handles global queries across all organizations and products.
+- **Cross-Platform Visibility**: Unified search experience accessible from all devices (mobile, tablet, and desktop).
 
-### 📄 Product Detail Page
+### 🛠️ Advanced Product Filtering
+
+- **Dynamic Category Filtering**: Intelligent `!inner` join logic that strictly filters by category when selected, but shows all products on reset.
+- **Dual Category Support**: Seamless filtering for both Global Categories (platform-wide) and Store Categories (seller-specific).
+- **Price Range Control**: Interactive range slider to narrow down results by budget.
+- **Sort by Relevance**: Options to sort by Price, Newest Arrivals (`createdAt`), and alphabetically.
+
+### 📄 Product Detail & Grid Features
+
+- **Advanced Pagination**: Reusable top and bottom pagination controls supporting 40 items per page with mobile-responsive layouts.
+- **Premium UI Polish**: Redesigned product cards, glassmorphism badges, and smooth hover animations.
+- **Responsive Navigation**: Mobile-sticky filters and auto-closing sidebar drawers for optimized real estate.
+- **Loading Skeletons**: Consistent skeleton states for initial grid loads and live search results.
+
+### ⭐ Product Reviews & Feedback
 
 - **Paginated Reviews**: Efficient client-side pagination with "Load More" and skeleton loading states.
-- **Expandable Descriptions**: Automatic 50-word truncation for long descriptions with a "Read More" toggle.
-- **Seller Information**: Compact integrated card with inline "Chat" and "Visit Store" actions.
-- **Product Assets**: Support for multiple product images, variants (price/stock), and multi-tier categories.
+- **Dynamic Ratings**: Star ratings and review counts dynamically aggregated from Supabase.
 
 ### 🛒 Shopping Cart & Single-Store Checkout
 

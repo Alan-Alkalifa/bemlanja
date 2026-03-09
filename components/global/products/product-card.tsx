@@ -37,15 +37,20 @@ export function ProductCard({
   className,
 }: ProductCardProps) {
   return (
-    <Link
-      href={`/products/${productId}`}
+    <div
       className={cn(
-        "group flex flex-col gap-3 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xl transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 bg-card border border-transparent hover:border-border/50 overflow-hidden",
+        "group flex flex-col gap-3 rounded-xl transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 bg-card border border-transparent hover:border-border/50 overflow-hidden relative",
         className,
       )}
     >
+      <Link 
+        href={`/products/${productId}`}
+        className="absolute inset-0 z-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        aria-label={`View ${name}`}
+      />
+      
       {/* Image container */}
-      <div className="relative overflow-hidden aspect-square bg-muted">
+      <div className="relative overflow-hidden aspect-square border-b">
         {image_url ? (
           <Image
             src={image_url}
@@ -55,33 +60,36 @@ export function ProductCard({
             className="object-cover transition-transform duration-500 group-hover:scale-110"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">
+          <div className="w-full h-full flex items-center justify-center bg-muted text-muted-foreground text-sm">
             No image
           </div>
         )}
 
         {/* Glassmorphic store badge overlay */}
-        <div className="absolute bottom-3 left-3 flex items-center gap-2 bg-black/40 backdrop-blur-md rounded-full pl-1 pr-3 py-1 border border-white/10 max-w-[85%] transition-transform duration-300 group-hover:translate-y-[-2px]">
+        <Link 
+          href={`/stores/${org.slug}`}
+          className="absolute bottom-3 left-3 z-10 flex items-center gap-2 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-full pl-1 pr-3 py-1 border border-white/10 max-w-[85%] transition-all duration-300 group-hover:translate-y-[-2px] hover:scale-105"
+        >
           <Avatar className="size-6 border border-white/20">
             {org.logoUrl && (
-              <AvatarImage
-                src={org.logoUrl}
-                alt={org.orgName}
-                className="object-cover"
-              />
+               <AvatarImage
+                 src={org.logoUrl}
+                 alt={org.orgName}
+                 className="object-cover"
+               />
             )}
             <AvatarFallback className="text-[8px] font-bold bg-primary text-primary-foreground">
-              {org.initials}
+               {org.initials}
             </AvatarFallback>
           </Avatar>
           <span className="text-[10px] font-semibold text-white truncate leading-none tracking-tight">
             {org.orgName}
           </span>
-        </div>
+        </Link>
       </div>
 
       {/* Info */}
-      <div className="flex flex-col gap-2 p-3 pt-0">
+      <div className="flex flex-col gap-2 p-3 pt-0 z-10 pointer-events-none">
         <div className="flex flex-col gap-1">
           <p className="font-bold text-sm tracking-tight text-foreground line-clamp-2 leading-tight group-hover:text-primary transition-colors h-9">
             {name}
@@ -112,6 +120,6 @@ export function ProductCard({
           </div>
         </div>
       </div>
-    </Link>
+    </div>
   );
 }
