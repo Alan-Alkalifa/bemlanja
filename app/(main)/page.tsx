@@ -16,7 +16,7 @@ export default function Home() {
         </Suspense>
 
         {/* Product Grid */}
-        <Suspense fallback={<ProductGridSkeleton count={6} />}>
+        <Suspense fallback={<ProductGridSkeleton count={12} />}>
           <ProductGrid title="Latest Products" limit={12} />
         </Suspense>
       </div>
