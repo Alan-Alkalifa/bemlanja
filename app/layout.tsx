@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   authors: [{ name: "Bemlanja" }],
   creator: "Bemlanja",
   verification: {
-    google: "qo3SG0B2NPeSljDmb9oZZ6Z-Uv94yQmd3ttjfh-NZlA",
+    google: "gRrk6a7bIGNtMUQG9KTlmHx7ZwK3dRuxiSOjWlTG2I4",
   },
   robots: {
     index: true,
