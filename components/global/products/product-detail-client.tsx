@@ -11,6 +11,7 @@ export interface ProductVariant {
   name: string;
   price: number;
   stock: number;
+  weight_grams: number;
 }
 
 interface ProductDetailClientProps {
@@ -19,7 +20,11 @@ interface ProductDetailClientProps {
   imageUrl: string;
   variants: ProductVariant[];
   basePrice: number;
-  baseStock: number;
+  organization?: {
+    orgId: string;
+    orgName: string;
+    slug: string;
+  };
 }
 
 function formatRupiah(amount: number): string {
@@ -32,7 +37,7 @@ export function ProductDetailClient({
   imageUrl,
   variants,
   basePrice,
-  baseStock,
+  organization,
 }: ProductDetailClientProps) {
   const hasVariants = variants.length > 0;
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(
@@ -42,7 +47,7 @@ export function ProductDetailClient({
   const { addItem } = useCart();
 
   const currentPrice = selectedVariant?.price ?? basePrice;
-  const currentStock = selectedVariant?.stock ?? baseStock;
+  const currentStock = selectedVariant?.stock ?? 0;
 
   function increment() {
     setQty((q) => Math.min(q + 1, currentStock));
@@ -64,13 +69,14 @@ export function ProductDetailClient({
         name,
         price: basePrice,
         image_url: imageUrl,
-        stock: baseStock,
+        organizations: organization,
       },
       variant: selectedVariant
         ? {
             name: selectedVariant.name,
             price: selectedVariant.price,
             stock: selectedVariant.stock,
+            weight_grams: selectedVariant.weight_grams,
           }
         : undefined,
     });

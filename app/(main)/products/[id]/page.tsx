@@ -35,7 +35,7 @@ export default async function ProductDetailPage({ params }: Props) {
     .from("products")
     .select(
       `
-      productId, name, description, price, image_url, stock,
+      productId, name, description, price, image_url,
       organizations (
         orgId, orgName, slug, logoUrl, description,
         city_name, province_name, status
@@ -47,7 +47,7 @@ export default async function ProductDetailPage({ params }: Props) {
         profiles ( email )
       ),
       product_images ( imageId, url, sort_order ),
-      product_variants ( variantId, name, price, stock ),
+      product_variants ( variantId, name, price, stock, weight_grams ),
       product_categories (
         categories ( categoryId, name, slug )
       ),
@@ -103,9 +103,10 @@ export default async function ProductDetailPage({ params }: Props) {
 
   const variants: ProductVariant[] = (
     Array.isArray(product.product_variants) ? product.product_variants : []
-  ).map((v: ProductVariant) => ({
+  ).map((v: any) => ({
     ...v,
     price: Number(v.price),
+    weight_grams: v.weight_grams ?? 0,
   }));
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -217,7 +218,15 @@ export default async function ProductDetailPage({ params }: Props) {
               imageUrl={product.image_url ?? (images[0]?.url || "")}
               variants={variants}
               basePrice={Number(product.price)}
-              baseStock={product.stock}
+              organization={
+                org
+                  ? {
+                      orgId: org.orgId,
+                      orgName: org.orgName,
+                      slug: org.slug,
+                    }
+                  : undefined
+              }
             />
 
             {/* Trust badges */}

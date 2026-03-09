@@ -50,6 +50,13 @@ Bemlanja is a modern multi-vendor e-commerce marketplace built with **Next.js 15
 - **Seller Information**: Compact integrated card with inline "Chat" and "Visit Store" actions.
 - **Product Assets**: Support for multiple product images, variants (price/stock), and multi-tier categories.
 
+### 🛒 Shopping Cart & Single-Store Checkout
+
+- **Persistent Cart**: Synced to Supabase database for authenticated users, backed up to `localStorage` for guests.
+- **Auth Sync**: Automatically transfers and overwrites guest carts with the authentic database cart upon login.
+- **Single-Store Checkout Rules**: Cart items are visually grouped by Store/Organization. Users can only select and checkout items from *one* store at a time. Checking an item from a different store auto-clears previous selections.
+- **Loading Skeletons**: Integrated UI skeletons that match the cart layout while syncing data behind the scenes.
+
 ---
 
 ## 🗂️ Project Structure
@@ -127,7 +134,6 @@ bemlanja/
 | `description` | text    | Supports long description        |
 | `price`       | numeric |                                  |
 | `image_url`   | text    | Main thumbnail                   |
-| `stock`       | integer | default: `0`                     |
 | `is_active`   | boolean | default: `true`                  |
 
 ### ⭐ Product Reviews (`public.product_reviews`)
@@ -151,13 +157,14 @@ bemlanja/
 
 ### 🎭 Product Variants (`public.product_variants`)
 
-| Column      | Type    | Notes                            |
-| ----------- | ------- | -------------------------------- |
-| `variantId` | uuid    | PK, default: `gen_random_uuid()` |
-| `productId` | uuid    | FK products                      |
-| `name`      | text    |                                  |
-| `price`     | numeric |                                  |
-| `stock`     | integer | default: `0`                     |
+| Column         | Type    | Notes                            |
+| -------------- | ------- | -------------------------------- |
+| `variantId`    | uuid    | PK, default: `gen_random_uuid()` |
+| `productId`    | uuid    | FK products                      |
+| `name`         | text    |                                  |
+| `price`        | numeric |                                  |
+| `stock`        | integer | default: `0`                     |
+| `weight_grams` | integer | default: `0`                     |
 
 ### 📍 Addresses (`public.user_addresses`)
 
@@ -176,6 +183,16 @@ bemlanja/
 - **`public.org_categories`**: Store-specific categories.
 - **`public.product_categories`**: Linkage between products and global categories.
 - **`public.product_org_categories`**: Linkage between products and store categories.
+
+### 🛒 Cart Items (`public.cart_items`)
+
+| Column      | Type    | Notes                                    |
+| ----------- | ------- | ---------------------------------------- |
+| `id`        | uuid    | PK, default: `gen_random_uuid()`         |
+| `userId`    | uuid    | FK auth.users                            |
+| `productId` | uuid    | FK products                              |
+| `variantId` | uuid    | FK product_variants, nullable for base   |
+| `quantity`  | integer | default: `1`                             |
 
 ### Postgres RPC Functions (SECURITY DEFINER)
 

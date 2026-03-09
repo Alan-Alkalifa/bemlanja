@@ -20,18 +20,24 @@ export interface CartItem {
     name: string;
     price: number;
     image_url: string;
-    stock: number;
+    organizations?: {
+      orgId: string;
+      orgName: string;
+      slug: string;
+    };
   };
   variant?: {
     name: string;
     price: number;
     stock: number;
+    weight_grams: number;
   };
 }
 
 interface CartContextType {
   cartItems: CartItem[];
   isLoading: boolean;
+  isSyncing: boolean;
   addItem: (item: CartItem) => Promise<void>;
   removeItem: (productId: string, variantId?: string) => Promise<void>;
   updateQuantity: (
@@ -49,6 +55,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   // Memoize supabase client to prevent unnecessary effect re-runs
   const supabase = useMemo(() => createClient(), []);
@@ -73,23 +80,21 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }, [cartItems, isLoading]);
 
-  // Sync with Database if authenticated
+  // Sync with Database
   useEffect(() => {
-    const syncCart = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (user) {
+    const fetchDbCart = async (userId: string) => {
+      setIsSyncing(true);
+      try {
         const { data, error } = await supabase
           .from("cart_items")
           .select(
             `
             id, productId, variantId, quantity,
-            products ( name, price, image_url, stock ),
-            product_variants ( name, price, stock )
+            products ( name, price, image_url, organizations ( orgId, orgName, slug ) ),
+            product_variants ( name, price, stock, weight_grams )
           `,
           )
-          .eq("userId", user.id);
+          .eq("userId", userId);
 
         if (data && !error) {
           const dbItems: CartItem[] = data.map((item: any) => ({
@@ -98,29 +103,67 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             variantId: item.variantId,
             quantity: item.quantity,
             product: Array.isArray(item.products)
-              ? item.products[0]
-              : item.products,
+              ? {
+                  ...item.products[0],
+                  organizations: Array.isArray(item.products[0]?.organizations)
+                    ? item.products[0]?.organizations[0]
+                    : item.products[0]?.organizations,
+                }
+              : {
+                  ...item.products,
+                  organizations: Array.isArray(item.products?.organizations)
+                    ? item.products?.organizations[0]
+                    : item.products?.organizations,
+                },
             variant: Array.isArray(item.product_variants)
               ? item.product_variants[0]
               : item.product_variants,
           }));
 
-          if (dbItems.length > 0) {
-            setCartItems(dbItems);
-          }
+          setCartItems(dbItems); // Overwrite local cart with DB cart
         }
+      } catch (err) {
+        console.error("Error fetching db cart:", err);
+      } finally {
+        setIsSyncing(false);
       }
     };
 
-    if (!isLoading) {
-      syncCart();
-    }
+    // 1. Initial auth check
+    const checkAuthAndFetch = async () => {
+      if (isLoading) return; // Wait for local storage load first
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        await fetchDbCart(user.id);
+      }
+    };
+
+    checkAuthAndFetch();
+
+    // 2. Auth state subscription (handles logins mid-session)
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" && session?.user) {
+        // If user logs in, immediately overwrite guest cart with their DB cart
+        fetchDbCart(session.user.id);
+      } else if (event === "SIGNED_OUT") {
+        // Clear cart on sign out
+        setCartItems([]);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [isLoading, supabase]);
 
   const addItem = useCallback(
     async (newItem: CartItem) => {
       // 1. Calculate the new total quantity for the item and respect stock limits
-      const maxStock = newItem.variant?.stock ?? newItem.product?.stock ?? 0;
+      const maxStock = newItem.variant?.stock ?? 0;
       const existingItem = cartItems.find(
         (item) =>
           item.productId === newItem.productId &&
@@ -228,7 +271,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       const item = cartItems.find(
         (i) => i.productId === productId && i.variantId === variantId,
       );
-      const maxStock = item?.variant?.stock ?? item?.product?.stock ?? 100;
+      const maxStock = item?.variant?.stock ?? 0;
 
       const finalQuantity = Math.min(quantity, maxStock);
 
@@ -276,6 +319,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       value={{
         cartItems,
         isLoading,
+        isSyncing,
         addItem,
         removeItem,
         updateQuantity,
