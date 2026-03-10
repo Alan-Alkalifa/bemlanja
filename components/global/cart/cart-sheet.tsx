@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import Image from "next/image";
+import { usePathname, useRouter } from "next/navigation";
 import { Minus, Plus, Trash2, ShoppingBag, Store } from "lucide-react";
 import { useCart } from "@/components/providers/cart-provider";
 import {
@@ -32,8 +33,13 @@ export function CartSheet() {
     isSyncing,
   } = useCart();
 
+  const router = useRouter();
+  const pathname = usePathname();
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [selectedStore, setSelectedStore] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
+
+  const isCheckout = pathname.includes("/checkout");
 
   const toggleSelection = (itemId: string, orgId: string) => {
     setSelectedItems((prev) => {
@@ -98,6 +104,14 @@ export function CartSheet() {
       }, 0);
   }, [cartItems, selectedItems]);
 
+  const handleCheckout = () => {
+    if (selectedItems.size === 0) return;
+    const itemKeys = Array.from(selectedItems).join(",");
+    const orgId = selectedStore ?? "";
+    setOpen(false);
+    router.push(`/checkout?items=${encodeURIComponent(itemKeys)}&orgId=${encodeURIComponent(orgId)}`);
+  };
+
   const groupedCartItems = useMemo(() => {
     const groups: Record<
       string,
@@ -122,10 +136,18 @@ export function CartSheet() {
     return Object.values(groups);
   }, [cartItems]);
 
+  if (isCheckout) {
+    return (
+      <div className="opacity-50 cursor-not-allowed pointer-events-none">
+        <CartButton />
+      </div>
+    );
+  }
+
   return (
-    <Sheet>
+    <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <div>
+        <div onClick={() => setOpen(true)}>
           <CartButton />
         </div>
       </SheetTrigger>
@@ -270,6 +292,7 @@ export function CartSheet() {
                     className="w-full font-bold h-11" 
                     size="lg"
                     disabled={selectedItems.size === 0}
+                    onClick={handleCheckout}
                   >
                     Checkout Now ({selectedItems.size})
                   </Button>

@@ -45,6 +45,7 @@ export async function updateSession(request: NextRequest) {
   const isHomePage = request.nextUrl.pathname === "/";
   const isProductRoute = request.nextUrl.pathname.startsWith("/products");
   const isStoreRoute = request.nextUrl.pathname.startsWith("/stores");
+  const isApiRoute = request.nextUrl.pathname.startsWith("/api");
 
   // If user is logged in and on an auth page (except verify-org which requires being logged in),
   // redirect them to the app
@@ -60,7 +61,8 @@ export async function updateSession(request: NextRequest) {
     !isAuthRoute &&
     !isHomePage &&
     !isProductRoute &&
-    !isStoreRoute
+    !isStoreRoute &&
+    !isApiRoute
   ) {
     const url = request.nextUrl.clone();
     url.pathname = "/auth/login";

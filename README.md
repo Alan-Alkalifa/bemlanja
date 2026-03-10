@@ -75,6 +75,32 @@ Bemlanja is a modern multi-vendor e-commerce marketplace built with **Next.js 15
 - **Single-Store Checkout Rules**: Cart items are visually grouped by Store/Organization. Users can only select and checkout items from *one* store at a time. Checking an item from a different store auto-clears previous selections.
 - **Loading Skeletons**: Integrated UI skeletons that match the cart layout while syncing data behind the scenes.
 
+### 🚚 Shipping & Logistics (RajaOngkir v2)
+
+- **Real-time Cost Calculation**: Integration with RajaOngkir Form-Base API for precise shipping costs from 30,000+ districts across Indonesia.
+- **Dynamic Location Selectors**: Hierarchical Province > City > District > Sub-district dropdowns for accurate destination mapping.
+- **Multi-Courier Support**: Supports JNE, TIKI, POS, and other major Indonesian couriers.
+- **Smart ETD Display**: Automatically parses and displays Estimated Time of Delivery, with clean fallbacks for unavailable data.
+
+### 💳 Secure Payments (Midtrans)
+
+- **Snap Integration**: Seamless payment experience via Midtrans Snap popup.
+- **Order Lifecycle Management**: Automatic transition from `awaiting_payment` to `processing` or `cancelled` via webhooks.
+- **Robust Error Handling**: Automatic cart cleanup (only purchased items) and graceful redirects to Order History on payment window closure.
+- **Checkout Skeletons**: Precise layout-matching skeletons to prevent layout jumps during payment initialization.
+
+### 🎫 Coupon & Discount System
+
+- **Store-Specific Coupons**: Organizations can create custom coupon codes for their own products.
+- **Smart Validation**: Checks for active status, expiry dates, usage limits, and minimum purchase requirements.
+- **Dynamic Calculation**: Supports both **flat amount** and **percentage-based** discounts, with instant UI updates in the Order Summary.
+
+### 📍 Address Management
+
+- **Multiple Addresses**: Users can save multiple shipping addresses.
+- **Default Toggle**: Smart "Set as Default" logic to streamline the checkout experience.
+- **District Mapping**: Stores specific RajaOngkir IDs (Province, City, District) for zero-latency shipping integration.
+
 ---
 
 ## 🗂️ Project Structure
@@ -194,14 +220,45 @@ bemlanja/
 
 ### 📍 Addresses (`public.user_addresses`)
 
-| Column           | Type    | Notes                            |
-| ---------------- | ------- | -------------------------------- |
-| `addressId`      | uuid    | PK, default: `gen_random_uuid()` |
-| `userId`         | uuid    | FK auth.users                    |
-| `label`          | text    | e.g. 'Home'                      |
-| `street_address` | text    |                                  |
-| `recipient_name` | text    |                                  |
-| `is_default`     | boolean | default: `false`                 |
+| Column           | Type    | Notes                              |
+| ---------------- | ------- | ---------------------------------- |
+| `addressId`      | uuid    | PK, default: `gen_random_uuid()`   |
+| `userId`         | uuid    | FK auth.users                      |
+| `label`          | text    | e.g. 'Home'                        |
+| `street_address` | text    |                                    |
+| `recipient_name` | text    |                                    |
+| `phone`          | text    |                                    |
+| `province_id`    | text    | RajaOngkir Province ID             |
+| `city_id`        | text    | RajaOngkir City ID                 |
+| `district_id`    | text    | RajaOngkir District ID             |
+| `subdistrict_id` | text    | RajaOngkir Sub-district ID         |
+| `is_default`     | boolean | default: `false`                   |
+
+### 🎫 Coupons (`public.coupons`)
+
+| Column           | Type        | Notes                            |
+| ---------------- | ----------- | -------------------------------- |
+| `couponId`       | uuid        | PK                               |
+| `orgId`          | uuid        | FK organizations                 |
+| `code`           | text        | e.g. 'BEMLANJA10'                |
+| `discount_type`  | text        | 'percentage' or 'flat'           |
+| `discount_value` | numeric     |                                  |
+| `min_purchase`   | numeric     |                                  |
+| `is_active`      | boolean     |                                  |
+| `expires_at`     | timestamptz |                                  |
+
+### 📜 Orders (`public.orders`)
+
+| Column            | Type    | Notes                                    |
+| ----------------- | ------- | ---------------------------------------- |
+| `orderId`         | uuid    | PK                                       |
+| `userId`          | uuid    | FK Profiles                              |
+| `orgId`           | uuid    | FK Organizations                         |
+| `status`          | text    | 'pending', 'awaiting_payment', 'success' |
+| `total`           | numeric | Final amount paid                        |
+| `midtrans_token`  | text    | SNAP Token                               |
+| `shipping_cost`   | numeric |                                          |
+| `coupon_discount` | numeric |                                          |
 
 ### 📂 Categories & Relationships
 
@@ -256,6 +313,11 @@ Create a `.env.local` file in the project root:
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
 RESEND_API_KEY=your_resend_api_key
+
+# Shipping & Payments
+RAJAONGKIR_API_KEY=your_rajaongkir_v2_key
+MIDTRANS_SERVER_KEY=your_midtrans_server_key
+NEXT_PUBLIC_MIDTRANS_CLIENT_KEY=your_midtrans_client_key
 ```
 
 ### 4. Set up the Supabase database
