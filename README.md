@@ -9,13 +9,16 @@ Bemlanja is a modern multi-vendor e-commerce marketplace built with **Next.js 15
 ### 🔐 Authentication
 
 - **Email & Password** based login via Supabase Auth
-- **Split-screen Auth Layout** — a branded sidebar banner and a seamless card-free form on the right
+- **Split-screen Auth Layout** — a branded sidebar banner and a seamless card-free form on the right. The logo now links back to the homepage for better navigation.
+- **Full Name Field** — Sign-up form now requires a full name, ensuring more complete user profiles from the start.
+- **Forgot Password Security** — Enhanced flow that verifies if an email addresses exists in the database before sending a reset link, providing better feedback and security.
 - **Password reveal/hide** toggle on all password inputs
 - **Resend verification link** — If a user logs in without confirming their email, a new link is automatically dispatched
 
 ### 🏢 Organization (Seller) Sign-Up
 
 - Dual-email registration — a **Personal Login Email** (for auth) and a separate **Organization Contact Email**
+- **Mandatory Brand Label** — Ensuring every organization has a clear tagline/label from the start
 - Auto-generate a **URL slug** from the organization name
 - **Dual email verification** flow:
   1. Personal email confirmed via Supabase native link
@@ -29,9 +32,10 @@ Bemlanja is a modern multi-vendor e-commerce marketplace built with **Next.js 15
 
 ### 🛡️ Duplicate Prevention
 
-- Before any signup, checks if **personal email** already exists (`auth.users` via secure RPC `check_email_exists`)
-- Checks if **organization contact email** is already registered
-- Checks if **URL slug** is already taken (`check_slug_exists` RPC)
+- Before any signup, checks if **personal email** already exists across `auth.users`, `public.profiles`, and `public.organizations` (custom `check_email_exists` RPC).
+- Checks if **organization contact email** is already registered as an org email or personal account.
+- Checks if **Organization Name** is already taken (`check_org_name_exists` RPC).
+- Checks if **URL slug** is already taken (`check_slug_exists` RPC).
 
 ### 🎠 Hero Carousel
 
@@ -67,6 +71,15 @@ Bemlanja is a modern multi-vendor e-commerce marketplace built with **Next.js 15
   - Premium full-screen `Dialog` viewer with a `Carousel` for high-resolution image browsing.
   - Clean info overlays in the gallery modal showing reviewer details and ratings.
 - **Dynamic Ratings**: Star ratings and review counts dynamically aggregated from Supabase.
+
+### 👤 Profile & User Experience
+
+- **Enhanced Avatar Fallbacks**:
+  - Automatically generates initials for users without a profile image.
+  - Premium `bg-primary/10` and `text-primary` styling for better visibility.
+  - Fallback to a clear `User` icon when initials are unavailable.
+  - Consistent experience across the main Profile page and the Navigation Avatar Menu.
+- **Personalized Profile**: Comprehensive dashboard for managing personal details, addresses, and orders.
 
 ### 🛒 Shopping Cart & Single-Store Checkout
 
@@ -282,8 +295,9 @@ bemlanja/
 | Function                             | Description                                                         |
 | ------------------------------------ | ------------------------------------------------------------------- |
 | `handle_new_user()`                  | Trigger on auth.users — creates `profiles` and `organizations` rows |
-| `check_email_exists(p_email)`        | Checks if an email exists in `auth.users`                           |
+| `check_email_exists(p_email)`        | Checks if an email exists in `auth.users`, `organizations`, or `profiles` |
 | `check_slug_exists(p_slug)`          | Checks if an org slug is already in use                             |
+| `check_org_name_exists(p_name)`      | Checks if an organization name is already in use                   |
 | `verify_org_email(p_email, p_token)` | Verifies OTP and marks org email as verified                        |
 | `regenerate_org_token(p_email)`      | Generates a new OTP for a still-unverified org                      |
 

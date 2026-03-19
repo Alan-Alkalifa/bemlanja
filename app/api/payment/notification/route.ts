@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import crypto from "crypto";
 
 const MIDTRANS_SERVER_KEY = process.env.MIDTRANS_SERVER_KEY!;
@@ -9,7 +9,7 @@ function verifyMidtransSignature(
   statusCode: string,
   grossAmount: string,
   serverKey: string,
-  receivedSignature: string
+  receivedSignature: string,
 ): boolean {
   const hash = crypto
     .createHash("sha512")
@@ -36,12 +36,21 @@ export async function POST(req: NextRequest) {
       status_code,
       gross_amount,
       MIDTRANS_SERVER_KEY,
-      signature_key
+      signature_key,
     );
 
     if (!isValid) {
       console.warn("Invalid Midtrans signature for order:", midtransOrderId);
       return NextResponse.json({ error: "Invalid signature" }, { status: 403 });
+    }
+
+    // Skip status update for expired transactions — keep order as awaiting_payment
+    if (transaction_status === "expire") {
+      console.log(`Order ${midtransOrderId} expired — skipping status update.`);
+      return NextResponse.json({
+        success: true,
+        message: "Expire notification ignored",
+      });
     }
 
     // Determine final order status
@@ -50,13 +59,17 @@ export async function POST(req: NextRequest) {
       orderStatus = fraud_status === "accept" ? "paid" : "failure";
     } else if (transaction_status === "settlement") {
       orderStatus = "paid";
-    } else if (["cancel", "deny", "expire"].includes(transaction_status)) {
+    } else if (["cancel", "deny"].includes(transaction_status)) {
       orderStatus = transaction_status;
     } else if (transaction_status === "pending") {
       orderStatus = "awaiting_payment";
     }
 
-    const supabase = await createClient();
+    console.log(
+      `Processing Midtrans notification for order: ${midtransOrderId}, status: ${transaction_status}`,
+    );
+
+    const supabase = createAdminClient();
 
     const { data: order, error: fetchError } = await supabase
       .from("orders")
@@ -65,18 +78,55 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (fetchError || !order) {
-      console.error("Order not found:", midtransOrderId);
+      console.error(
+        "Order not found in database:",
+        midtransOrderId,
+        fetchError,
+      );
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
+    // Skip if already matching status to prevent duplicate processing
+    if (order.status === orderStatus) {
+      console.log(
+        `Order ${midtransOrderId} is already in status: ${orderStatus}`,
+      );
+      return NextResponse.json({
+        success: true,
+        message: "Status already up to date",
+      });
+    }
+
     // Update order status
-    await supabase
+    const { error: updateError } = await supabase
       .from("orders")
       .update({ status: orderStatus, updatedAt: new Date().toISOString() })
       .eq("midtrans_order_id", midtransOrderId);
 
+    if (updateError) {
+      console.error(
+        `Failed to update order ${midtransOrderId} to ${orderStatus}:`,
+        updateError,
+      );
+      return NextResponse.json({ error: "Update failed" }, { status: 500 });
+    }
+
+    console.log(
+      `Successfully updated order ${midtransOrderId} status to: ${orderStatus}`,
+    );
+
+    // If payment failed or expired, release reserved stock and coupon usage
+    const isFailedStatus = ["cancel", "deny", "expire", "failure"].includes(
+      orderStatus,
+    );
+    if (isFailedStatus && order.status === "awaiting_payment") {
+      console.log(`Releasing items for failed order: ${midtransOrderId}`);
+      await supabase.rpc("release_order_items", { p_order_id: order.orderId });
+    }
+
     // If paid, clear the cart items for this order's items
     if (orderStatus === "paid" || orderStatus === "settlement") {
+      console.log(`Clearing cart for successful order: ${midtransOrderId}`);
       const { data: orderItems } = await supabase
         .from("order_items")
         .select("productId, variantId")
@@ -99,6 +149,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Midtrans notification handler error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }

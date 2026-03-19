@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Minus, Plus, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { formatRupiah } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import { useCart } from "@/components/providers/cart-provider";
 
@@ -27,9 +28,6 @@ interface ProductDetailClientProps {
   };
 }
 
-function formatRupiah(amount: number): string {
-  return "Rp " + amount.toLocaleString("id-ID", { minimumFractionDigits: 0 });
-}
 
 export function ProductDetailClient({
   productId,

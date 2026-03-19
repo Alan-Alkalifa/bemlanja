@@ -5,6 +5,7 @@ import { ShippingService } from "./shipping-selector";
 import { AppliedCoupon } from "./coupon-input";
 import { Receipt, Package } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { formatRupiah } from "@/lib/utils";
 
 interface OrderSummaryItem {
   productId: string;
@@ -22,9 +23,7 @@ interface OrderSummaryProps {
   appliedCoupon: AppliedCoupon | null;
 }
 
-function formatRupiah(amount: number) {
-  return "Rp " + amount.toLocaleString("id-ID");
-}
+
 
 export function OrderSummary({
   items,
@@ -39,12 +38,12 @@ export function OrderSummary({
   return (
     <div className="flex flex-col gap-4">
       {/* Items */}
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-4">
         {items.map((item, idx) => {
           const key = `${item.productId}-${item.variantId ?? "base"}-${idx}`;
           return (
-            <div key={key} className="flex items-center gap-3">
-              <div className="relative size-14 rounded-lg overflow-hidden bg-muted border border-border/40 shrink-0">
+            <div key={key} className="flex items-center gap-4">
+              <div className="relative size-16 rounded-2xl overflow-hidden bg-muted/30 border border-border/20 shrink-0">
                 {item.imageUrl ? (
                   <Image
                     src={item.imageUrl}
@@ -55,22 +54,24 @@ export function OrderSummary({
                   />
                 ) : (
                   <div className="size-full flex items-center justify-center">
-                    <Package className="size-6 text-muted-foreground" />
+                    <Package className="size-6 text-muted-foreground/40" />
                   </div>
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground line-clamp-1">
+                <p className="text-sm font-bold text-foreground line-clamp-1 tracking-tight">
                   {item.productName}
                 </p>
                 {item.variantName && (
-                  <p className="text-xs text-muted-foreground">{item.variantName}</p>
+                  <p className="text-[10px] font-bold uppercase text-muted-foreground/60 tracking-wider">
+                    {item.variantName}
+                  </p>
                 )}
-                <p className="text-xs text-muted-foreground mt-0.5">
+                <p className="text-xs font-medium text-muted-foreground mt-1">
                   {item.quantity} × {formatRupiah(item.unitPrice)}
                 </p>
               </div>
-              <span className="text-sm font-semibold text-foreground shrink-0">
+              <span className="text-sm font-bold text-foreground shrink-0">
                 {formatRupiah(item.unitPrice * item.quantity)}
               </span>
             </div>

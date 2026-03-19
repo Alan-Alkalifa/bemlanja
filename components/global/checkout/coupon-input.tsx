@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Tag, Loader2, X, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { formatRupiah } from "@/lib/utils";
 
 export interface AppliedCoupon {
   couponId: string;
@@ -71,12 +72,12 @@ export function CouponInput({
     // Validate: minimum purchase
     if (subtotal < data.min_purchase) {
       toast.error(
-        `Minimum purchase of Rp ${data.min_purchase.toLocaleString("id-ID")} required for this coupon`
+        `Minimum purchase of ${formatRupiah(data.min_purchase)} required for this coupon`
       );
       setLoading(false);
       return;
     }
-
+    
     // Calculate discount
     let discountAmount = 0;
     if (data.discount_type === "percentage") {
@@ -84,7 +85,7 @@ export function CouponInput({
     } else {
       discountAmount = Math.min(data.discount_value, subtotal);
     }
-
+    
     onApply({
       couponId: data.couponId,
       code: data.code,
@@ -92,32 +93,33 @@ export function CouponInput({
       discount_value: data.discount_value,
       discountAmount,
     });
+    
+    toast.success(`Coupon applied! Save ${formatRupiah(discountAmount)}`);
 
-    toast.success(`Coupon applied! Save Rp ${discountAmount.toLocaleString("id-ID")}`);
     setCode("");
     setLoading(false);
   };
 
   if (appliedCoupon) {
     return (
-      <div className="flex items-center justify-between p-3 rounded-xl border border-primary/30 bg-primary/5">
-        <div className="flex items-center gap-2">
-          <div className="size-7 rounded-full bg-primary/10 flex items-center justify-center">
-            <Check className="size-4 text-primary" />
+      <div className="flex items-center justify-between p-4 rounded-2xl border-none bg-primary/10 transition-all animate-in fade-in zoom-in duration-300">
+        <div className="flex items-center gap-3">
+          <div className="size-9 rounded-full bg-primary/20 flex items-center justify-center">
+            <Check className="size-5 text-primary" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-foreground">
+            <p className="text-sm font-bold text-foreground tracking-tight">
               {appliedCoupon.code}
             </p>
-            <p className="text-xs text-primary">
-              −Rp {appliedCoupon.discountAmount.toLocaleString("id-ID")}
+            <p className="text-xs font-semibold text-primary">
+              Applied −{formatRupiah(appliedCoupon.discountAmount)}
             </p>
           </div>
         </div>
         <Button
           variant="ghost"
           size="icon"
-          className="size-7 text-muted-foreground hover:text-destructive"
+          className="size-8 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
           onClick={onRemove}
         >
           <X className="size-4" />
@@ -128,18 +130,22 @@ export function CouponInput({
 
   return (
     <div className="flex gap-2">
-      <div className="relative flex-1">
-        <Tag className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+      <div className="relative flex-1 group">
+        <Tag className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
         <Input
           placeholder="Enter coupon code"
-          className="pl-9 uppercase"
+          className="pl-10 h-12 uppercase rounded-xl border-none bg-muted/20 focus-visible:bg-background focus-visible:ring-primary/30 transition-all font-bold tracking-wider placeholder:font-normal placeholder:tracking-normal"
           value={code}
           onChange={(e) => setCode(e.target.value.toUpperCase())}
           onKeyDown={(e) => e.key === "Enter" && handleApply()}
         />
       </div>
-      <Button onClick={handleApply} disabled={loading || !code.trim()} className="shrink-0">
-        {loading ? <Loader2 className="size-4 animate-spin" /> : "Apply"}
+      <Button
+        onClick={handleApply}
+        disabled={loading || !code.trim()}
+        className="shrink-0 h-12 px-6 rounded-xl font-bold transition-all active:scale-95"
+      >
+        {loading ? <Loader2 className="size-5 animate-spin" /> : "Apply"}
       </Button>
     </div>
   );

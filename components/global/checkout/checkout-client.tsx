@@ -22,6 +22,7 @@ import {
   ChevronRight,
   AlertCircle,
 } from "lucide-react";
+import { formatRupiah } from "@/lib/utils";
 
 declare global {
   interface Window {
@@ -51,15 +52,15 @@ function SectionCard({
   step: number;
 }) {
   return (
-    <div className="bg-card border border-border/50 rounded-2xl overflow-hidden">
-      <div className="flex items-center gap-3 p-4 border-b border-border/40">
-        <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm shrink-0">
+    <div className="bg-muted/10 border-none rounded-[2rem] overflow-hidden shadow-sm">
+      <div className="flex items-center gap-3 p-6 pb-0">
+        <div className="size-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-extrabold text-sm shrink-0">
           {step}
         </div>
-        <Icon className="size-4 text-muted-foreground" />
-        <h2 className="font-semibold text-foreground">{title}</h2>
+        <Icon className="size-4 text-muted-foreground/60" />
+        <h2 className="font-bold text-foreground tracking-tight text-lg">{title}</h2>
       </div>
-      <div className="p-4">{children}</div>
+      <div className="p-6">{children}</div>
     </div>
   );
 }
@@ -355,13 +356,13 @@ export function CheckoutClient() {
             </SectionCard>
 
             {/* Notes */}
-            <div className="bg-card border border-border/50 rounded-2xl p-4">
-              <label className="text-sm font-semibold text-foreground block mb-2">
-                Order Notes (optional)
+            <div className="bg-muted/10 border-none rounded-[2rem] p-6 shadow-sm">
+              <label className="text-sm font-bold text-foreground block mb-3 px-1 tracking-tight">
+                Order Notes <span className="text-muted-foreground/50 font-normal ml-1">(optional)</span>
               </label>
               <textarea
-                className="w-full text-sm bg-input border border-border rounded-xl p-3 resize-none focus:outline-none focus:ring-2 focus:ring-ring transition-colors text-foreground placeholder:text-muted-foreground"
-                rows={3}
+                className="w-full text-sm bg-background/50 border-none rounded-2xl p-4 resize-none focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-foreground placeholder:text-muted-foreground/40 shadow-inner"
+                rows={4}
                 placeholder="Special instructions for the seller..."
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
@@ -370,13 +371,13 @@ export function CheckoutClient() {
           </div>
 
           {/* Right column — summary */}
-          <div className="flex flex-col gap-4 laptop:sticky laptop:top-24">
-            <div className="bg-card border border-border/50 rounded-2xl overflow-hidden">
-              <div className="flex items-center gap-2 p-4 border-b border-border/40">
-                <ShoppingBag className="size-4 text-muted-foreground" />
-                <h2 className="font-semibold text-foreground">Order Summary</h2>
+          <div className="flex flex-col gap-6 laptop:sticky laptop:top-24">
+            <div className="bg-muted/10 border-none rounded-[2rem] overflow-hidden shadow-sm p-2">
+              <div className="flex items-center gap-2 p-5 pb-4">
+                <ShoppingBag className="size-4 text-muted-foreground/60" />
+                <h2 className="font-bold text-foreground text-lg tracking-tight">Order Summary</h2>
               </div>
-              <div className="p-4">
+              <div className="px-5 pb-5 pt-0">
                 <OrderSummary
                   items={summaryItems}
                   selectedShipping={selectedShipping}
@@ -387,19 +388,19 @@ export function CheckoutClient() {
 
             <Button
               size="lg"
-              className="w-full h-14 text-base font-bold gap-2"
+              className="w-full h-16 text-lg font-extrabold gap-3 rounded-[1.5rem] shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-95 group"
               onClick={handlePay}
               disabled={paying || !selectedAddress || !selectedShipping}
             >
               {paying ? (
                 <>
-                  <Loader2 className="size-5 animate-spin" />
-                  Processing...
+                  <Loader2 className="size-6 animate-spin" />
+                  Processing Order...
                 </>
               ) : (
                 <>
-                  Pay Rp {total.toLocaleString("id-ID")}
-                  <ChevronRight className="size-5" />
+                  Pay {formatRupiah(total)}
+                  <ChevronRight className="size-5 group-hover:translate-x-1 transition-transform" />
                 </>
               )}
             </Button>

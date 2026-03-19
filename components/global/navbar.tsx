@@ -18,7 +18,15 @@ export function Navbar() {
           <NavbarSearch />
         </div>
         <div className="flex items-center gap-2 laptop:gap-4">
-          <CartSheet />
+          <Suspense
+            fallback={
+              <div className="size-10 flex items-center justify-center pointer-events-none">
+                <div className="size-5 rounded-md bg-muted animate-pulse" />
+              </div>
+            }
+          >
+            <CartSheet />
+          </Suspense>
           <Suspense
             fallback={
               <div className="h-8 w-20 animate-pulse bg-muted rounded-md" />

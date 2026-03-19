@@ -1,10 +1,18 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+// Routes that don't require authentication
+const PUBLIC_PREFIXES = ["/auth", "/api", "/products", "/stores"];
+
+const PUBLIC_EXACT = new Set(["/"]);
+
+function isPublicRoute(pathname: string) {
+  if (PUBLIC_EXACT.has(pathname)) return true;
+  return PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+}
+
 export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
-    request,
-  });
+  let supabaseResponse = NextResponse.next({ request });
 
   if (
     !process.env.NEXT_PUBLIC_SUPABASE_URL ||
@@ -25,9 +33,7 @@ export async function updateSession(request: NextRequest) {
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value),
           );
-          supabaseResponse = NextResponse.next({
-            request,
-          });
+          supabaseResponse = NextResponse.next({ request });
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options),
           );
@@ -39,33 +45,25 @@ export async function updateSession(request: NextRequest) {
   const { data } = await supabase.auth.getClaims();
   const user = data?.claims;
 
-  const isAuthRoute = request.nextUrl.pathname.startsWith("/auth");
-  const isVerifyOrgRoute =
-    request.nextUrl.pathname.startsWith("/auth/verify-org");
-  const isHomePage = request.nextUrl.pathname === "/";
-  const isProductRoute = request.nextUrl.pathname.startsWith("/products");
-  const isStoreRoute = request.nextUrl.pathname.startsWith("/stores");
-  const isApiRoute = request.nextUrl.pathname.startsWith("/api");
+  const { pathname } = request.nextUrl;
 
-  // If user is logged in and on an auth page (except verify-org which requires being logged in),
-  // redirect them to the app
-  if (user && isAuthRoute && !isVerifyOrgRoute) {
+  // Logged-in users visiting auth pages (except /auth/verify-org) → redirect home
+  if (
+    user &&
+    pathname.startsWith("/auth") &&
+    !pathname.startsWith("/auth/verify-org")
+  ) {
     const url = request.nextUrl.clone();
     url.pathname = "/";
+    url.search = "";
     return NextResponse.redirect(url);
   }
 
-  // If user is NOT logged in and trying to access a protected route
-  if (
-    !user &&
-    !isAuthRoute &&
-    !isHomePage &&
-    !isProductRoute &&
-    !isStoreRoute &&
-    !isApiRoute
-  ) {
+  // Unauthenticated users on protected routes → redirect to login
+  if (!user && !isPublicRoute(pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = "/auth/login";
+    url.searchParams.set("next", pathname);
     return NextResponse.redirect(url);
   }
 
@@ -75,11 +73,11 @@ export async function updateSession(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Match all request paths except:
+     * Match all paths except:
      * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - images - .svg, .png, .jpg, .jpeg, .gif, .webp
+     * - _next/image (image optimization)
+     * - favicon.ico
+     * - image extensions (.svg, .png, .jpg, .jpeg, .gif, .webp)
      */
     "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],

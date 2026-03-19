@@ -2,6 +2,8 @@ import React from "react";
 import { ShieldCheck, BadgeCheck, Store } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 
+import Link from "next/link";
+
 // Map icon name strings from the DB to actual Lucide components
 const ICON_MAP: Record<string, React.ElementType> = {
   BadgeCheck,
@@ -64,14 +66,15 @@ export async function AuthBanner() {
       />
 
       <div className="relative z-10">
-        <div className="flex items-center gap-2 mb-12">
+        <Link href="/" className="flex items-center gap-2 mb-12 hover:opacity-80 transition-opacity w-fit">
           <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
             <ShieldCheck className="w-6 h-6 text-primary-foreground" />
           </div>
           <span className="text-2xl font-bold tracking-tight text-foreground">
             bemlanja
           </span>
-        </div>
+        </Link>
+
 
         <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tight text-foreground mb-6 leading-tight">
           {banner.headline} <br className="hidden xl:block" />

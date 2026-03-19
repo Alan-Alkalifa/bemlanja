@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/server";
 import { UserAvatarMenu } from "@/components/global/user-avatar-menu";
+import { getProfile } from "@/lib/actions/queries";
 
 export async function AuthButton() {
   const supabase = await createClient();
@@ -22,12 +23,8 @@ export async function AuthButton() {
     );
   }
 
-  // Fetch the profile for avatar info
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("full_name, avatar_url")
-    .eq("userId", user.sub)
-    .single();
+  // Use the cached profile for avatar info to avoid N+1 queries in the Navbar
+  const { data: profile } = await getProfile();
 
   return (
     <UserAvatarMenu

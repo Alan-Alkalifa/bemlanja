@@ -16,6 +16,7 @@ export function SignUpForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
@@ -46,17 +47,21 @@ export function SignUpForm({
         console.error("Error checking email existence:", existenceError);
       } else if (emailExists) {
         toast.error(
-          "An account with this email address already exists. Please log in.",
+          "This email address is already registered. Please log in or use a different email.",
         );
         setIsLoading(false);
         return;
       }
+
 
       const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/protected`,
+          data: {
+            full_name: fullName,
+          },
         },
       });
       if (error) throw error;
@@ -72,13 +77,24 @@ export function SignUpForm({
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <div className="flex flex-col gap-8">
-        <div className="flex flex-col gap-2 text-center">
+        <div className="flex flex-col gap-2 text-left">
           <h1 className="text-2xl font-semibold tracking-tight">Sign up</h1>
           <p className="text-sm text-muted-foreground">Create a new account</p>
         </div>
         <div className="grid gap-6">
           <form onSubmit={handleSignUp}>
             <div className="flex flex-col gap-6">
+              <div className="grid gap-2">
+                <Label htmlFor="full_name">Full Name</Label>
+                <Input
+                  id="full_name"
+                  type="text"
+                  placeholder="John Doe"
+                  required
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                />
+              </div>
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -118,28 +134,28 @@ export function SignUpForm({
                 {isLoading ? <Spinner /> : "Sign up"}
               </Button>
             </div>
-            <div className="mt-4 text-center text-sm flex flex-col gap-2">
-              <div>
-                Already have an account?{" "}
+            <div className="mt-4 text-center text-sm flex flex-row flex-wrap justify-center items-center gap-x-2 gap-y-1 text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <span>Already have an account?</span>
                 <Link
                   href="/auth/login"
-                  className="underline underline-offset-4"
+                  className="underline underline-offset-4 text-foreground hover:text-primary transition-colors"
                 >
                   Login
                 </Link>
               </div>
-              <div>
-                <span className="text-muted-foreground">
-                  Want to be a seller?
-                </span>{" "}
+              <span className="hidden sm:inline text-border">•</span>
+              <div className="flex items-center gap-2">
+                <span>Want to be a seller?</span>
                 <Link
                   href="/auth/sign-up-org"
-                  className="underline underline-offset-4 font-medium"
+                  className="underline underline-offset-4 font-medium text-foreground hover:text-primary transition-colors"
                 >
                   Register an Organization
                 </Link>
               </div>
             </div>
+
           </form>
         </div>
       </div>

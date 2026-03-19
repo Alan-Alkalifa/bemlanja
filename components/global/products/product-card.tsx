@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
+import { cn, formatRupiah } from "@/lib/utils";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Star } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -21,10 +21,6 @@ export interface ProductCardProps {
   className?: string;
 }
 
-/** Format a number as Indonesian Rupiah, e.g. 200000 → "Rp 200.000" */
-function formatRupiah(amount: number): string {
-  return "Rp " + amount.toLocaleString("id-ID", { minimumFractionDigits: 0 });
-}
 
 export function ProductCard({
   productId,

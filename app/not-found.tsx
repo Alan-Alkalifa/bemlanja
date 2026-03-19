@@ -53,7 +53,7 @@ export default function NotFound() {
         </div>
       </div>
 
-      <div className="mt-20 grid grid-cols-1 sm:grid-cols-3 gap-8 text-left max-w-4xl w-full border-t border-border/50 pt-12">
+      <div className="mt-20 grid grid-cols-1 sm:grid-cols-3 gap-8 text-left max-w-7xl w-full border-t border-border/50 pt-12">
         <div className="space-y-2">
           <h4 className="font-semibold text-foreground">Need help?</h4>
           <p className="text-sm text-muted-foreground">

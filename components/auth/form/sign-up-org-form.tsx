@@ -63,7 +63,7 @@ export function SignUpOrgForm({
     }
 
     try {
-      // 1. Check if the personal email already exists in auth.users
+      // 1. Check if the personal email is already used anywhere
       const { data: emailExists, error: existenceError } = await supabase.rpc(
         "check_email_exists",
         {
@@ -78,30 +78,50 @@ export function SignUpOrgForm({
         );
       } else if (emailExists) {
         toast.error(
-          "An account with this personal login email already exists. Please log in.",
+          "This personal login email is already registered. Please log in or use a different email.",
         );
         setIsLoading(false);
         return;
       }
 
-      // 2. Check if the organization contact email is already registered
-      const { data: orgExists, error: orgError } = await supabase
-        .from("organizations")
-        .select("id")
-        .eq("orgEmail", orgEmail)
-        .maybeSingle();
+      // 2. Check if the organization contact email is already used anywhere
+      const { data: orgExists, error: orgError } = await supabase.rpc(
+        "check_email_exists",
+        {
+          p_email: orgEmail,
+        },
+      );
 
       if (orgError) {
         console.error("Error checking org email existence:", orgError);
       } else if (orgExists) {
         toast.error(
-          "An organization is already registered with this contact email.",
+          "This organization contact email is already in use. Please check for typos or use a different email.",
         );
         setIsLoading(false);
         return;
       }
 
-      // 3. Check if the Organization Slug is already taken
+      // 3. Check if the Organization Name is already taken
+      const { data: nameExists, error: nameError } = await supabase.rpc(
+        "check_org_name_exists",
+        {
+          p_name: orgName,
+        },
+      );
+
+      if (nameError) {
+        console.error("Error checking org name existence:", nameError);
+      } else if (nameExists) {
+        toast.error(
+          "This Organization Name is already taken. Please choose a different one.",
+        );
+        setIsLoading(false);
+        return;
+      }
+
+      // 4. Check if the Organization Slug is already taken
+
       const { data: slugExists, error: slugError } = await supabase.rpc(
         "check_slug_exists",
         {
@@ -141,9 +161,6 @@ export function SignUpOrgForm({
       });
       if (error) throw error;
 
-      // We log the token so you can see it in development
-      console.log(`Generated OTP for ${orgEmail}: ${verificationToken}`);
-
       // Dispatch the physical email using Resend
       const emailResult = await sendOrgVerificationEmail(
         orgEmail,
@@ -172,7 +189,7 @@ export function SignUpOrgForm({
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <div className="flex flex-col gap-8">
-        <div className="flex flex-col gap-2 text-center">
+        <div className="flex flex-col gap-2 text-left">
           <h1 className="text-2xl font-semibold tracking-tight">
             Register Organization
           </h1>
@@ -214,10 +231,12 @@ export function SignUpOrgForm({
                   <Input
                     id="label"
                     placeholder="Tech Gadgets"
+                    required
                     value={label}
                     onChange={(e) => setLabel(e.target.value)}
                   />
                 </div>
+
               </div>
 
               <div className="h-px bg-border my-2" />
@@ -280,20 +299,26 @@ export function SignUpOrgForm({
               </Button>
             </div>
 
-            <div className="mt-4 text-center text-sm">
-              Already have an account?{" "}
-              <Link href="/auth/login" className="underline underline-offset-4">
-                Login
-              </Link>
-            </div>
-            <div className="mt-2 text-center text-sm">
-              <span className="text-muted-foreground">Not a seller?</span>{" "}
-              <Link
-                href="/auth/sign-up"
-                className="underline underline-offset-4"
-              >
-                Sign up as a regular user
-              </Link>
+            <div className="mt-6 text-center text-sm flex flex-row flex-wrap justify-center items-center gap-x-3 gap-y-1 text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <span>Already have an account?</span>
+                <Link
+                  href="/auth/login"
+                  className="underline underline-offset-4 text-foreground hover:text-primary transition-colors"
+                >
+                  Login
+                </Link>
+              </div>
+              <span className="hidden sm:inline text-border">•</span>
+              <div className="flex items-center gap-2">
+                <span>Not a seller?</span>
+                <Link
+                  href="/auth/sign-up"
+                  className="underline underline-offset-4 text-foreground hover:text-primary transition-colors"
+                >
+                  Sign up as a regular user
+                </Link>
+              </div>
             </div>
           </form>
         </div>

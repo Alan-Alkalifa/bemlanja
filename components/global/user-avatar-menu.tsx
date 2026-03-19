@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, Settings, User } from "lucide-react";
+import { LogOut, Settings, User, ShoppingBag } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -30,14 +30,14 @@ export function UserAvatarMenu({
 }: UserAvatarMenuProps) {
   const router = useRouter();
 
-  const initials = fullName
-    ? fullName
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2)
-    : email.charAt(0).toUpperCase();
+  const initials = (fullName || "")
+    .split(" ")
+    .filter(Boolean)
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2) || email.charAt(0).toUpperCase();
+
 
   const handleLogout = async () => {
     const supabase = createClient();
@@ -63,10 +63,11 @@ export function UserAvatarMenu({
             {avatarUrl && (
               <AvatarImage src={avatarUrl} alt={fullName || email} />
             )}
-            <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-              {initials}
+            <AvatarFallback className="bg-primary/10 text-primary font-bold">
+              {initials || <User className="size-4 opacity-70" />}
             </AvatarFallback>
           </Avatar>
+
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
@@ -83,15 +84,15 @@ export function UserAvatarMenu({
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem asChild>
-            <Link href="/protected" className="cursor-pointer">
+            <Link href="/protected/profile" className="cursor-pointer">
               <User />
-              Profile
+              My Profile
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
-            <Link href="/protected" className="cursor-pointer">
-              <Settings />
-              Settings
+            <Link href="/protected/orders" className="cursor-pointer">
+              <ShoppingBag />
+              My Orders
             </Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>

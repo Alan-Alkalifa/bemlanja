@@ -89,7 +89,7 @@ export function LoginForm({
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <div className="flex flex-col gap-8">
-        <div className="flex flex-col gap-2 text-center">
+        <div className="flex flex-col gap-2 text-left">
           <h1 className="text-2xl font-semibold tracking-tight">Login</h1>
           <p className="text-sm text-muted-foreground">
             Enter your email below to login to your account
@@ -131,23 +131,22 @@ export function LoginForm({
                 {isLoading ? <Spinner /> : "Login"}
               </Button>
             </div>
-            <div className="mt-4 text-center text-sm flex flex-col gap-2">
-              <div>
-                Don&apos;t have an account?{" "}
+            <div className="mt-4 text-center text-sm flex flex-row flex-wrap justify-center items-center gap-x-2 gap-y-1 text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <span>Don&apos;t have an account?</span>
                 <Link
                   href="/auth/sign-up"
-                  className="underline underline-offset-4"
+                  className="underline underline-offset-4 text-foreground hover:text-primary transition-colors"
                 >
                   Sign up
                 </Link>
               </div>
-              <div>
-                <span className="text-muted-foreground">
-                  Want to be a seller?
-                </span>{" "}
+              <span className="hidden sm:inline text-border">•</span>
+              <div className="flex items-center gap-2">
+                <span>Want to be a seller?</span>
                 <Link
                   href="/auth/sign-up-org"
-                  className="underline underline-offset-4 font-medium"
+                  className="underline underline-offset-4 font-medium text-foreground hover:text-primary transition-colors"
                 >
                   Register an Organization
                 </Link>

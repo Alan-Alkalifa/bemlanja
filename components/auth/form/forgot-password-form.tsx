@@ -24,6 +24,22 @@ export function ForgotPasswordForm({
     setIsLoading(true);
 
     try {
+      // Check if the email exists in our database first
+      const { data: emailExists, error: existenceError } = await supabase.rpc(
+        "check_email_exists",
+        {
+          p_email: email,
+        },
+      );
+
+      if (existenceError) {
+        console.error("Error checking email existence:", existenceError);
+      } else if (!emailExists) {
+        toast.error("No account found with this email address.");
+        setIsLoading(false);
+        return;
+      }
+
       // The url which will be included in the email. This URL needs to be configured in your redirect URLs in the Supabase dashboard at https://supabase.com/dashboard/project/_/auth/url-configuration
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/auth/update-password`,
@@ -32,6 +48,7 @@ export function ForgotPasswordForm({
       toast.success("Password reset instructions sent.");
       setSuccess(true);
     } catch (error: unknown) {
+
       toast.error(error instanceof Error ? error.message : "An error occurred");
     } finally {
       setIsLoading(false);
@@ -42,7 +59,7 @@ export function ForgotPasswordForm({
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       {success ? (
         <div className="flex flex-col gap-8">
-          <div className="flex flex-col gap-2 text-center">
+          <div className="flex flex-col gap-2 text-left">
             <h1 className="text-2xl font-semibold tracking-tight">
               Check Your Email
             </h1>
@@ -59,7 +76,7 @@ export function ForgotPasswordForm({
         </div>
       ) : (
         <div className="flex flex-col gap-8">
-          <div className="flex flex-col gap-2 text-center">
+          <div className="flex flex-col gap-2 text-left">
             <h1 className="text-2xl font-semibold tracking-tight">
               Reset Your Password
             </h1>
@@ -86,11 +103,11 @@ export function ForgotPasswordForm({
                   {isLoading ? <Spinner /> : "Send reset email"}
                 </Button>
               </div>
-              <div className="mt-4 text-center text-sm">
-                Already have an account?{" "}
+              <div className="mt-4 text-center text-sm flex flex-row justify-center items-center gap-2 text-muted-foreground">
+                <span>Already have an account?</span>
                 <Link
                   href="/auth/login"
-                  className="underline underline-offset-4"
+                  className="underline underline-offset-4 text-foreground hover:text-primary transition-colors"
                 >
                   Login
                 </Link>

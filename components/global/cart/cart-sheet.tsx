@@ -12,14 +12,12 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { formatRupiah } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { CartButton } from "./cart-button";
 import { CartSkeleton } from "./cart-skeleton";
 
-function formatRupiah(amount: number): string {
-  return "Rp " + amount.toLocaleString("id-ID", { minimumFractionDigits: 0 });
-}
 
 export function CartSheet() {
   const {

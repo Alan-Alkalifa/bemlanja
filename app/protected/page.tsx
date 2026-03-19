@@ -25,7 +25,7 @@ async function UserDetails() {
 
 export default function ProtectedPage() {
   return (
-    <div className="flex-1 w-full flex flex-col gap-12 max-w-4xl mx-auto mt-12">
+    <div className="flex-1 w-full flex flex-col gap-12 max-w-7xl mx-auto mt-12">
       <Alert className="bg-primary/5 border-primary/20 text-foreground">
         <InfoIcon className="h-4 w-4 text-primary" />
         <AlertTitle className="text-primary font-semibold">

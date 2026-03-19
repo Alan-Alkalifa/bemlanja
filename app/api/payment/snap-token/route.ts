@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
 const MIDTRANS_SERVER_KEY = process.env.MIDTRANS_SERVER_KEY!;
-const MIDTRANS_SNAP_URL = "https://app.sandbox.midtrans.com/snap/v1/transactions";
+const MIDTRANS_SNAP_URL =
+  "https://app.sandbox.midtrans.com/snap/v1/transactions";
 
 interface CheckoutItem {
   productId: string;
@@ -59,19 +60,16 @@ export async function POST(req: NextRequest) {
     if (!items?.length || !addressId || !orgId) {
       return NextResponse.json(
         { error: "Missing required fields" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // Calculate totals
     const subtotal = items.reduce(
       (acc, item) => acc + item.unitPrice * item.quantity,
-      0
-    );
-    const total = Math.max(
       0,
-      subtotal + shippingCost - couponDiscount
     );
+    const total = Math.max(0, subtotal + shippingCost - couponDiscount);
 
     // Generate unique order ID
     const midtransOrderId = `BEMLANJA-${Date.now()}-${Math.random()
@@ -89,13 +87,39 @@ export async function POST(req: NextRequest) {
     // Fetch address details
     const { data: address } = await supabase
       .from("user_addresses")
-      .select("recipient_name, phone, street_address, city_name, province_name, postal_code")
+      .select(
+        "recipient_name, phone, street_address, city_name, province_name, postal_code",
+      )
       .eq("addressId", addressId)
       .eq("userId", user.id)
       .single();
 
     if (!address) {
       return NextResponse.json({ error: "Address not found" }, { status: 404 });
+    }
+
+    // Atomically reserve stock and validate coupon
+    const reserveItems = items.map((item) => ({
+      variantId: item.variantId,
+      quantity: item.quantity,
+    }));
+
+    const { error: reserveError } = await supabase.rpc(
+      "reserve_checkout_items",
+      {
+        p_items: reserveItems,
+        p_coupon_id: couponId || null,
+      },
+    );
+
+    if (reserveError) {
+      console.error("Stock/Coupon reservation error:", reserveError);
+      return NextResponse.json(
+        {
+          error: reserveError.message || "Insufficient stock or invalid coupon",
+        },
+        { status: 400 },
+      );
     }
 
     // Create order in DB
@@ -119,7 +143,10 @@ export async function POST(req: NextRequest) {
 
     if (orderError || !order) {
       console.error("Order creation error:", orderError);
-      return NextResponse.json({ error: "Failed to create order" }, { status: 500 });
+      return NextResponse.json(
+        { error: "Failed to create order" },
+        { status: 500 },
+      );
     }
 
     // Create order items
@@ -147,11 +174,6 @@ export async function POST(req: NextRequest) {
       cost: shippingCost,
     });
 
-    // Increment coupon usage if applicable
-    if (couponId) {
-      await supabase.rpc("increment_coupon_usage", { coupon_id: couponId });
-    }
-
     // Build Midtrans item details
     const itemDetails = items.map((item) => ({
       id: item.variantId || item.productId,
@@ -163,11 +185,23 @@ export async function POST(req: NextRequest) {
     }));
 
     // Add shipping as line item
+    const safeCourierId = shippingCourier
+      .replace(/[^a-zA-Z0-9]/g, "")
+      .substring(0, 15)
+      .toUpperCase();
+    const safeServiceId = shippingService
+      .replace(/[^a-zA-Z0-9]/g, "")
+      .substring(0, 15)
+      .toUpperCase();
+
     itemDetails.push({
-      id: `SHIPPING-${shippingCourier}-${shippingService}`,
+      id: `SHIP-${safeCourierId}-${safeServiceId}`,
       price: Math.round(shippingCost),
       quantity: 1,
-      name: `Shipping (${shippingCourier.toUpperCase()} ${shippingService})`,
+      name: `Shipping (${shippingCourier.toUpperCase()} ${shippingService})`.substring(
+        0,
+        50,
+      ),
     });
 
     // Add coupon discount as negative line item
@@ -186,6 +220,7 @@ export async function POST(req: NextRequest) {
         order_id: midtransOrderId,
         gross_amount: Math.round(total),
       },
+      notification_url: `${new URL("/api/payment/notification", process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000")}`,
       item_details: itemDetails,
       customer_details: {
         first_name: profile?.full_name || address.recipient_name,
@@ -201,7 +236,9 @@ export async function POST(req: NextRequest) {
         },
       },
       callbacks: {
-        finish: `${process.env.NEXT_PUBLIC_SUPABASE_URL?.replace("supabase.co", "vercel.app") || "http://localhost:3000"}/checkout/success?order_id=${midtransOrderId}`,
+        finish: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/protected/orders/${order.orderId}`,
+        unfinish: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/protected/orders/${order.orderId}`,
+        error: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/protected/orders/${order.orderId}`,
       },
     };
 
@@ -222,15 +259,21 @@ export async function POST(req: NextRequest) {
 
     if (!midtransResponse.ok || midtransData.error_messages) {
       console.error("Midtrans error:", midtransData);
-      // Rollback: cancel the order
+
+      // Rollback: cancel the order and release reserved stock/coupons
       await supabase
         .from("orders")
         .update({ status: "cancelled" })
         .eq("orderId", order.orderId);
 
+      await supabase.rpc("release_order_items", { p_order_id: order.orderId });
+
       return NextResponse.json(
-        { error: midtransData.error_messages?.join(", ") || "Payment gateway error" },
-        { status: 500 }
+        {
+          error:
+            midtransData.error_messages?.join(", ") || "Payment gateway error",
+        },
+        { status: 500 },
       );
     }
 
@@ -252,6 +295,9 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     console.error("Snap token route error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }

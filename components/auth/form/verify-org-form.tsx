@@ -107,7 +107,7 @@ export function VerifyOrgForm() {
   return (
     <div className="w-full max-w-sm mx-auto flex flex-col gap-6">
       <div className="flex flex-col gap-8">
-        <div className="flex flex-col gap-2 text-center">
+        <div className="flex flex-col gap-2 text-left">
           <h1 className="text-2xl font-semibold tracking-tight">
             Verify Organization Email
           </h1>
